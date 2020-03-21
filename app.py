@@ -1,6 +1,14 @@
+# -*- coding: utf-8 -*-
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-p')
+
+port = parser.parse_args().p
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -28,4 +36,4 @@ app.layout = html.Div(children=[
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(port=port, host='0.0.0.0')
