@@ -47,10 +47,10 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='example-graph',
         figure=fig,
-        style={"height": "95vh"},
+        style={"height": "100%"},
         config={'displayModeBar': False},
     )
-])
+], className="main")
 
 if __name__ == '__main__':
     app.run_server(port=port, host='0.0.0.0', debug=mode == 'develop')
