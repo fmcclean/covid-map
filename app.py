@@ -36,9 +36,11 @@ fig = px.choropleth_mapbox(df, geojson=geojson,
                            zoom=6,
                            center={"lat": 53, "lon": -1},
                            opacity=0.5,
-                           labels={'TotalCases': 'Total Cases'})
+                           labels={'TotalCases': 'Total Cases', 'GSS_CD': 'Area Code'})
 
-fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0},
+                  font=dict(size=18),
+                  hoverlabel=dict(font=dict(size=18)))
 
 app.layout = html.Div(children=[
     dcc.Graph(
