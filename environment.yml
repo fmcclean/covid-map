@@ -1,4 +1,6 @@
 dependencies:
+  - python==3.7
+  - pandas
   - pip
   - pip:
       - dash==1.9.1
