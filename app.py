@@ -20,7 +20,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-df = pd.read_csv('CountyUAs_cases_table.csv')
+df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
 with open('la-boundaries-simple.geojson') as f:
     geojson = json.load(f)
