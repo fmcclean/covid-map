@@ -40,13 +40,15 @@ fig = px.choropleth_mapbox(df, geojson=geojson,
 
 fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0},
                   font=dict(size=18),
-                  hoverlabel=dict(font=dict(size=18)))
+                  hoverlabel=dict(font=dict(size=18)),
+                  coloraxis={'colorbar':{'title':{'text':''}}})
 
 app.layout = html.Div(children=[
     dcc.Graph(
         id='example-graph',
         figure=fig,
-        style={"height": "95vh"}
+        style={"height": "95vh"},
+        config={'displayModeBar': False},
     )
 ])
 
