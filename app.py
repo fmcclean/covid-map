@@ -20,6 +20,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+app.title = 'COVID-19 Dash Map'
+
 df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
 with open('la-boundaries-simple.geojson') as f:
@@ -45,7 +47,7 @@ fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0},
 
 app.layout = html.Div(children=[
     dcc.Graph(
-        id='example-graph',
+        id='graph',
         figure=fig,
         style={"height": "100%"},
         config={'displayModeBar': False},
