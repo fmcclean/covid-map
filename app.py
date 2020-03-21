@@ -29,11 +29,12 @@ fig = px.choropleth_mapbox(df, geojson=geojson,
                            locations='GSS_CD',
                            color='TotalCases',
                            hover_name='GSS_NM',
+                           hover_data=['TotalCases'],
                            color_continuous_scale="Viridis",
                            featureidkey='properties.ctyua17cd',
                            mapbox_style="carto-positron",
-                           zoom=3,
-                           center={"lat": 55, "lon": -1},
+                           zoom=6,
+                           center={"lat": 53, "lon": -1},
                            opacity=0.5,
                            labels={'TotalCases': 'Total Cases'})
 
@@ -43,7 +44,7 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='example-graph',
         figure=fig,
-        style={"height": "100vh"}
+        style={"height": "95vh"}
     )
 ])
 
