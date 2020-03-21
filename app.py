@@ -28,6 +28,7 @@ with open('la-boundaries-simple.geojson') as f:
 fig = px.choropleth_mapbox(df, geojson=geojson,
                            locations='GSS_CD',
                            color='TotalCases',
+                           hover_name='GSS_NM',
                            color_continuous_scale="Viridis",
                            featureidkey='properties.ctyua17cd',
                            mapbox_style="carto-positron",
