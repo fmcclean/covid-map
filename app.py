@@ -18,6 +18,14 @@ server = app.server
 
 df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
+updated = None
+for tries in range(3):
+    updated = download.updated()
+    if updated.startswith('Updated'):
+        break
+    else:
+        print('failed to get updated date')
+
 if os.path.exists('population.csv'):
     population = pd.read_csv('population.csv')
 else:
@@ -57,12 +65,14 @@ fig.update_layout(
     coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
     annotations=[
         go.layout.Annotation(
-            text='<a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>',
+            text='{}<br><a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>'.format(updated),
             showarrow=False,
             x=0,
             y=0,
             bgcolor="#ffffff",
-            opacity=0.8)])
+            opacity=0.8,
+            align='left'
+        )])
 
 app.layout = html.Div(children=[
     dcc.Graph(

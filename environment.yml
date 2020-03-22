@@ -1,6 +1,10 @@
+channels:
+  - conda-forge
 dependencies:
   - python==3.7
   - pandas
+  - selenium
+  - geckodriver
   - pip
   - pip:
       - dash==1.9.1
