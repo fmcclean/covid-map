@@ -67,7 +67,7 @@ fig = px.choropleth_mapbox(df, geojson=geojson,
 fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0},
                   font=dict(size=20),
                   hoverlabel=dict(font=dict(size=20)),
-                  coloraxis={'colorbar': {'title': {'text': ''}, 'tickangle': -90}})
+                  coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}})
 
 app.layout = html.Div(children=[
     dcc.Graph(
