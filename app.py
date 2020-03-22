@@ -32,6 +32,8 @@ def create_figure():
 
     mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), timestamp)
 
+    print(mongo.get_available_dates())
+
     if os.path.exists('population.csv'):
         population = pd.read_csv('population.csv')
     else:
