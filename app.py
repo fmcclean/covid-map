@@ -9,6 +9,7 @@ import pandas as pd
 import urllib.request
 from zipfile import ZipFile
 from io import BytesIO
+from plotly import graph_objs as go
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -67,7 +68,16 @@ fig = px.choropleth_mapbox(df, geojson=geojson,
 fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0},
                   font=dict(size=20),
                   hoverlabel=dict(font=dict(size=20)),
-                  coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}})
+                  coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
+                    annotations=[
+                            go.layout.Annotation(
+                                text='<a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>',
+                                showarrow=False,
+                                x=0,
+                                y=0
+                            )
+                        ],
+                  xaxis_title=" ",)
 
 app.layout = html.Div(children=[
     dcc.Graph(
@@ -75,7 +85,7 @@ app.layout = html.Div(children=[
         figure=fig,
         style={"height": "100%"},
         config={'displayModeBar': False},
-    )
+    ),
 ], className="main")
 
 if __name__ == '__main__':
