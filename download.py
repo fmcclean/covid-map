@@ -8,8 +8,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import chromedriver_binary # adds chrome driver to PATH
-
 
 def boundaries():
     with urllib.request.urlopen(
@@ -59,7 +57,13 @@ def updated():
     url = 'https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6'
     options = Options()
     options.headless = True
-    browser = webdriver.Chrome(options=options)
+
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-gpu')
+    print(vars(options))
+    browser = webdriver.Chrome(
+        # executable_path=os.environ['CHROME'] if 'CHROME' in os.environ else "chromedriver",
+        options=options)
     browser.get(url)
     elem = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.ID, "dijit__TemplatedMixin_1")))
     html = elem.get_attribute('outerHTML')
