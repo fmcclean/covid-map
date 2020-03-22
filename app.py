@@ -9,6 +9,7 @@ import pandas as pd
 from plotly import graph_objs as go
 import download
 import mongo
+from datetime import datetime
 
 try:
     import chromedriver_binary
@@ -24,40 +25,47 @@ server = app.server
 
 app.dates = mongo.get_available_dates()
 
+if os.path.exists('population.csv'):
+    population = pd.read_csv('population.csv')
+else:
+    population = download.population()
 
-def create_figure():
+if os.path.exists('boundaries.geojson'):
+    with open('boundaries.geojson') as f:
+        geojson = json.load(f)
+else:
+    geojson = download.boundaries()
 
-    df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
-    updated = download.updated()
-    timestamp = pd.to_datetime(updated[8:]).timestamp()
+def create_figure(timestamp=None):
 
-    mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), timestamp)
+    if not timestamp:
 
-    app.dates = mongo.get_available_dates()
+        df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
-    if os.path.exists('population.csv'):
-        population = pd.read_csv('population.csv')
+        app.updated = download.updated()
+        timestamp = pd.to_datetime(app.updated[8:]).timestamp()
+        df['date'] = datetime.fromtimestamp(timestamp).strftime('%d/%m')
+
+        mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), timestamp)
+
+        app.dates = mongo.get_available_dates()
+
     else:
-        population = download.population()
-
-    if os.path.exists('boundaries.geojson'):
-        with open('boundaries.geojson') as f:
-            geojson = json.load(f)
-    else:
-        geojson = download.boundaries()
+        df = mongo.get_date(timestamp)
+        df['date'] = datetime.fromtimestamp(timestamp).strftime('%d/%m')
 
     merged = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
 
-    df = pd.merge(df, merged.groupby('GSS_CD')['All Ages'].sum().reset_index())
+    df = pd.merge(df, merged.groupby(['GSS_CD', 'UTLA19NM'])['All Ages'].sum().reset_index())
 
     df['cases_by_pop'] = (df['TotalCases'] / df['All Ages'] * 10000).round(1)
 
     fig = px.choropleth_mapbox(df, geojson=geojson,
                                locations='GSS_CD',
                                color='cases_by_pop',
-                               hover_name='GSS_NM',
-                               hover_data=['TotalCases', 'All Ages'],
+                               hover_name='UTLA19NM',
+                               hover_data=['TotalCases', 'date', 'All Ages'],
                                color_continuous_scale="Viridis",
                                featureidkey='properties.ctyua19cd',
                                mapbox_style="carto-positron",
@@ -66,7 +74,8 @@ def create_figure():
                                opacity=0.5,
                                labels={'TotalCases': 'Total Cases', 'GSS_CD': 'Area Code',
                                        'All Ages': 'Total Population',
-                                       'cases_by_pop': 'Cases per 10,000 people'},
+                                       'cases_by_pop': 'Cases per 10,000 people',
+                                       'date':'Date'},
                                )
 
     fig.update_layout(
@@ -76,7 +85,7 @@ def create_figure():
         coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
         annotations=[
             go.layout.Annotation(
-                text='{}<br><a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>'.format(updated),
+                text='{}<br><a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>'.format(app.updated),
                 showarrow=False,
                 x=0,
                 y=0,
@@ -90,10 +99,6 @@ def create_figure():
     return fig
 
 
-def set_date(timestamp):
-    print(mongo.get_date(app.dates[-1].timestamp()))
-
-
 def create_layout(figure):
     return html.Div(
         id='div',
@@ -105,22 +110,25 @@ def create_layout(figure):
                 config={'displayModeBar': False},
             ),
             dcc.Slider(
-                id='date',
+                id='slider',
                 min=min(app.dates).timestamp(),
                 max=max(app.dates).timestamp(),
                 step=None,
-                marks={int(date.timestamp()): date.strftime("%d/%m") for date in app.dates}
+                marks={int(date.timestamp()): date.strftime("%d/%m") for date in app.dates},
+                value=max(app.dates).timestamp()
             ),
         ], className="main")
 
-print({date.timestamp(): str(date) for date in app.dates})
+
 app.layout = create_layout(create_figure())
 
 
 @app.callback(dash.dependencies.Output('graph', 'figure'),
-              [dash.dependencies.Input('div', 'id')])
-def update_figure(div_id):
-    figure = create_figure()
+              [dash.dependencies.Input('div', 'id'),
+               dash.dependencies.Input('slider', 'value')])
+def update_figure(div_id, slider_value):
+    timestamp = dash.callback_context.triggered[0]['value']
+    figure = create_figure(timestamp=timestamp)
     app.layout = create_layout(figure)
     return figure
 

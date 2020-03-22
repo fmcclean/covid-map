@@ -48,7 +48,7 @@ def population():
 
     df = pd.merge(population, lookup, left_on='Area Codes', right_on='LSOA11CD')
 
-    df[['All Ages', 'UTLA19CD']].to_csv('population.csv', index=False)
+    df[['All Ages', 'UTLA19CD', 'UTLA19NM']].to_csv('population.csv', index=False)
 
     return df
 
