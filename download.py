@@ -4,13 +4,11 @@ import pandas as pd
 from zipfile import ZipFile
 from io import BytesIO
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
-options = Options()
-options.headless = True
+import chromedriver_binary # adds chrome driver to PATH
 
 
 def boundaries():
@@ -59,7 +57,9 @@ def population():
 
 def updated():
     url = 'https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6'
-    browser = webdriver.Firefox(options=options)
+    options = Options()
+    options.headless = True
+    browser = webdriver.Chrome(options=options)
     browser.get(url)
     elem = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.ID, "dijit__TemplatedMixin_1")))
     html = elem.get_attribute('outerHTML')

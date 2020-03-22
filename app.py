@@ -18,13 +18,7 @@ server = app.server
 
 df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
-updated = None
-for tries in range(3):
-    updated = download.updated()
-    if updated.startswith('Updated'):
-        break
-    else:
-        print('failed to get updated date')
+updated = download.updated()
 
 if os.path.exists('population.csv'):
     population = pd.read_csv('population.csv')
