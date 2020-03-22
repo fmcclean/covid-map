@@ -2,30 +2,23 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import argparse
+import os
 import plotly.express as px
 import json
 import pandas as pd
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument('-p')
-parser.add_argument('-m', default='develop')
-
-args = parser.parse_args()
-port = args.p
-mode = args.m
+import urllib.request
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.title = 'COVID-19 Dash Map'
+server = app.server
 
 df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
-with open('la-boundaries-simple.geojson') as f:
-    geojson = json.load(f)
+with urllib.request.urlopen("https://opendata.arcgis.com/datasets/56ae7efaabc841b4939385e2178437a3_0.geojson") as url:
+    geojson = json.loads(url.read().decode())
 
 fig = px.choropleth_mapbox(df, geojson=geojson,
                            locations='GSS_CD',
@@ -33,7 +26,7 @@ fig = px.choropleth_mapbox(df, geojson=geojson,
                            hover_name='GSS_NM',
                            hover_data=['TotalCases'],
                            color_continuous_scale="Viridis",
-                           featureidkey='properties.ctyua17cd',
+                           featureidkey='properties.ctyua19cd',
                            mapbox_style="carto-positron",
                            zoom=6,
                            center={"lat": 53, "lon": -1},
@@ -55,4 +48,4 @@ app.layout = html.Div(children=[
 ], className="main")
 
 if __name__ == '__main__':
-    app.run_server(port=port, host='0.0.0.0', debug=mode == 'develop')
+    app.run_server(port=os.environ['PORT'], host='0.0.0.0')
