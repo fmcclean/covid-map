@@ -8,6 +8,7 @@ import json
 import pandas as pd
 import urllib.request
 from zipfile import ZipFile
+from io import BytesIO
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -22,16 +23,16 @@ df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f9
 with urllib.request.urlopen("https://opendata.arcgis.com/datasets/56ae7efaabc841b4939385e2178437a3_0.geojson") as url:
     geojson = json.loads(url.read().decode())
 
-req =urllib.request.Request("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2flowersuperoutputareamidyearpopulationestimatesnationalstatistics%2fmid2018sape21dt12a/sape21dt12amid20182019lalsoabroadagegrpsestformatted.zip",
-                            headers={
-                           'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-                           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                           'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-                           'Accept-Encoding': 'none',
-                           'Accept-Language': 'en-US,en;q=0.8',
-                           'Connection': 'keep-alive'}
-                       )
-from io import BytesIO
+req = urllib.request.Request("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2flowersuperoutputareamidyearpopulationestimatesnationalstatistics%2fmid2018sape21dt12a/sape21dt12amid20182019lalsoabroadagegrpsestformatted.zip",
+                             headers={
+                                 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+                                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                                 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+                                 'Accept-Encoding': 'none',
+                                 'Accept-Language': 'en-US,en;q=0.8',
+                                 'Connection': 'keep-alive'}
+                             )
+
 with urllib.request.urlopen(req) as url:
     zip_file = ZipFile(BytesIO(url.read()))
 
@@ -66,7 +67,7 @@ fig = px.choropleth_mapbox(df, geojson=geojson,
 fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0},
                   font=dict(size=20),
                   hoverlabel=dict(font=dict(size=20)),
-                  coloraxis={'colorbar':{'title':{'text':''}, 'tickangle': -90}})
+                  coloraxis={'colorbar': {'title': {'text': ''}, 'tickangle': -90}})
 
 app.layout = html.Div(children=[
     dcc.Graph(
