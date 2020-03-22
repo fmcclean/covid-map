@@ -81,22 +81,28 @@ def create_figure():
     return fig
 
 
-app.layout = html.Div(
-    id='div',
-    children=[
-        dcc.Graph(
-            id='graph',
-            figure=create_figure(),
-            style={"height": "100%"},
-            config={'displayModeBar': False},
-        )
-    ], className="main")
+def create_layout(figure):
+    return html.Div(
+        id='div',
+        children=[
+            dcc.Graph(
+                id='graph',
+                figure=figure,
+                style={"height": "100%"},
+                config={'displayModeBar': False},
+            )
+        ], className="main")
+
+
+app.layout = create_layout(create_figure())
 
 
 @app.callback(dash.dependencies.Output('graph', 'figure'),
               [dash.dependencies.Input('div', 'id')])
 def update_figure(div_id):
-    return create_figure()
+    figure = create_figure()
+    app.layout = create_layout(figure)
+    return figure
 
 
 if __name__ == '__main__':
