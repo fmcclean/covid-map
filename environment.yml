@@ -4,3 +4,4 @@ dependencies:
   - pip
   - pip:
       - dash==1.9.1
+      - gunicorn
