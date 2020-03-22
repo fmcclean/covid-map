@@ -8,6 +8,10 @@ import json
 import pandas as pd
 from plotly import graph_objs as go
 import download
+try:
+    import chromedriver_binary
+except:
+    pass
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 

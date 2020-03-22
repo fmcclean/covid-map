@@ -60,9 +60,7 @@ def updated():
 
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-gpu')
-    print(vars(options))
     browser = webdriver.Chrome(
-        # executable_path=os.environ['CHROME'] if 'CHROME' in os.environ else "chromedriver",
         options=options)
     browser.get(url)
     elem = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.ID, "dijit__TemplatedMixin_1")))
