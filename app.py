@@ -22,6 +22,8 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = 'COVID-19 Dash Map'
 server = app.server
 
+app.dates = mongo.get_available_dates()
+
 
 def create_figure():
 
@@ -32,7 +34,7 @@ def create_figure():
 
     mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), timestamp)
 
-    print(mongo.get_available_dates())
+    app.dates = mongo.get_available_dates()
 
     if os.path.exists('population.csv'):
         population = pd.read_csv('population.csv')
@@ -68,7 +70,7 @@ def create_figure():
                                )
 
     fig.update_layout(
-        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        margin={"r": 0, "t": 0, "l": 0, "b": 20},
         font=dict(size=20),
         hoverlabel=dict(font=dict(size=20)),
         coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
@@ -88,6 +90,10 @@ def create_figure():
     return fig
 
 
+def set_date(timestamp):
+    print(mongo.get_date(app.dates[-1].timestamp()))
+
+
 def create_layout(figure):
     return html.Div(
         id='div',
@@ -95,12 +101,19 @@ def create_layout(figure):
             dcc.Graph(
                 id='graph',
                 figure=figure,
-                style={"height": "100%"},
+                style={"height": "90%"},
                 config={'displayModeBar': False},
-            )
+            ),
+            dcc.Slider(
+                id='date',
+                min=min(app.dates).timestamp(),
+                max=max(app.dates).timestamp(),
+                step=None,
+                marks={int(date.timestamp()): date.strftime("%d/%m") for date in app.dates}
+            ),
         ], className="main")
 
-
+print({date.timestamp(): str(date) for date in app.dates})
 app.layout = create_layout(create_figure())
 
 
