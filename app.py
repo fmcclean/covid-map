@@ -8,6 +8,8 @@ import json
 import pandas as pd
 from plotly import graph_objs as go
 import download
+import mongo
+
 try:
     import chromedriver_binary
 except:
@@ -26,6 +28,9 @@ def create_figure():
     df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
     updated = download.updated()
+    timestamp = pd.to_datetime(updated[8:]).timestamp()
+
+    mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), timestamp)
 
     if os.path.exists('population.csv'):
         population = pd.read_csv('population.csv')
