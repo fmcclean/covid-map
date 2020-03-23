@@ -1,8 +1,6 @@
 import urllib.request
 import json
 import pandas as pd
-from zipfile import ZipFile
-from io import BytesIO
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -42,8 +40,8 @@ def boundaries():
 def population():
     req = urllib.request.Request(
         'https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopu'
-                       'lationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid20182019laboun'
-                       'daries/ukmidyearestimates20182019ladcodes.xls',
+        'lationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%'
+        '2fmid20182019laboundaries/ukmidyearestimates20182019ladcodes.xls',
         headers={
             'User-Agent': 'Chrome/23.0.1271.64',
             'Accept': 'zip/zip',
