@@ -16,7 +16,7 @@ def boundaries():
         geojson = json.loads(url.read().decode())
 
     with urllib.request.urlopen(
-            "https://opendata.arcgis.com/datasets/79f08c38e78c4fe0b0550c7e96c5a999_0.geojson") as url:
+            "https://opendata.arcgis.com/datasets/629c303e07ee4ad09a4dfd0bfea499ec_0.geojson") as url:
         countries = json.loads(url.read().decode())
 
     geojson['features'] = [feature for feature in geojson['features']
@@ -41,9 +41,9 @@ def boundaries():
 
 def population():
     req = urllib.request.Request(
-        "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates"
-        "%2fdatasets%2flowersuperoutputareamidyearpopulationestimatesnationalstatistics%2fmid2018sape21dt12a/sape21dt12"
-        "amid20182019lalsoabroadagegrpsestformatted.zip",
+        'https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopu'
+                       'lationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid20182019laboun'
+                       'daries/ukmidyearestimates20182019ladcodes.xls',
         headers={
             'User-Agent': 'Chrome/23.0.1271.64',
             'Accept': 'zip/zip',
@@ -54,18 +54,17 @@ def population():
         )
 
     with urllib.request.urlopen(req) as url:
-        zip_file = ZipFile(BytesIO(url.read()))
+        df = pd.read_excel(url.read(), sheet_name='MYE2-All', header=4).rename(columns={'Code': 'UTLA19CD',
+                                                                                        'Name': 'UTLA19NM'})
 
-    with zip_file.open(zip_file.namelist()[0]) as f:
-        df = pd.read_excel(f, sheet_name='Mid-2018 Persons', header=4, index_col='Area Codes')
+    # lookup = pd.read_csv('https://opendata.arcgis.com/datasets/4c6f3314565e43c5ac7885fd71347548_0.csv')
 
-    lookup = pd.read_csv('https://opendata.arcgis.com/datasets/4c6f3314565e43c5ac7885fd71347548_0.csv')
-
-    df = pd.merge(df, lookup, left_on='Area Codes', right_on='LSOA11CD')
-
-    df = df.groupby(['UTLA19CD', 'UTLA19NM'])['All Ages'].sum().reset_index()
+    # df = pd.merge(df, lookup, left_on='Code', right_on='LSOA11CD')
+    #
+    df = df.groupby(['UTLA19CD', 'UTLA19NM'])['All ages'].sum().reset_index()
 
     df.to_csv('population.csv', index=False)
+    # lookup.to_csv('lookup.csv')
 
     return df
 

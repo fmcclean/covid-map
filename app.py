@@ -53,15 +53,25 @@ def create_figure(timestamp=None):
 
         date = datetime.fromtimestamp(timestamp)
 
-    df = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
+    indicators = pd.read_excel('https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
+    indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
+    indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
+        columns={'ScotlandCases': 'S92000003',
+                 'WalesCases': 'W92000004',
+                 'NICases': 'N92000002'}).transpose().reset_index().rename(columns={'index': 'GSS_CD', 0: 'TotalCases'})
+    df = df.append(indicators)
 
-    df['cases_by_pop'] = (df['TotalCases'] / df['All Ages'] * 10000).round(1)
+    df = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
+    df.to_csv('df.csv')
+    indicators.to_csv('indicators.csv')
+
+    df['cases_by_pop'] = (df['TotalCases'] / df['All ages'] * 10000).round(1)
 
     fig = px.choropleth_mapbox(df, geojson=geojson,
                                locations='GSS_CD',
                                color='cases_by_pop',
                                hover_name='UTLA19NM',
-                               hover_data=['TotalCases', 'All Ages'],
+                               hover_data=['TotalCases', 'All ages'],
                                color_continuous_scale="Viridis",
                                featureidkey='properties.ctyua19cd',
                                mapbox_style="carto-positron",
@@ -69,7 +79,7 @@ def create_figure(timestamp=None):
                                center={"lat": 53, "lon": -1},
                                opacity=0.5,
                                labels={'TotalCases': 'Total Cases', 'GSS_CD': 'Area Code',
-                                       'All Ages': 'Total Population',
+                                       'All ages': 'Total Population',
                                        'cases_by_pop': 'Cases per 10,000 people'},
                                )
 
