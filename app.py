@@ -54,7 +54,6 @@ def create_figure(timestamp=None):
                      'NICases': 'N92000002'}).transpose().reset_index().rename(
             columns={'index': 'GSS_CD', 0: 'TotalCases'})
         if indicators_date == date:
-            print('same date')
             df = df.append(indicators)
 
         mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), date.timestamp())
