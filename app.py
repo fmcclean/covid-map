@@ -76,7 +76,7 @@ def create_figure(timestamp=None):
                                featureidkey='properties.ctyua19cd',
                                mapbox_style="carto-positron",
                                zoom=6,
-                               center={"lat": 53, "lon": -1},
+                               center={"lat": 53, "lon": -2},
                                opacity=0.5,
                                labels={'TotalCases': 'Total Cases', 'GSS_CD': 'Area Code',
                                        'All ages': 'Total Population',
