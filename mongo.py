@@ -30,4 +30,4 @@ def get_date(timestamp):
 
 def get_location(location):
     return [(datetime.fromtimestamp(loc['date']).isoformat(), loc['cases'][location])
-            for loc in days.find({}, {'date': 1, 'cases.{}'.format(location): 1, '_id': -1})]
+            for loc in days.find({}, {'date': 1, 'cases.{}'.format(location): 1, '_id': -1}).sort('date')]
