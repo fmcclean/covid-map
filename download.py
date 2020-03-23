@@ -15,11 +15,23 @@ def boundaries():
             "https://opendata.arcgis.com/datasets/56ae7efaabc841b4939385e2178437a3_0.geojson") as url:
         geojson = json.loads(url.read().decode())
 
+    with urllib.request.urlopen(
+            "https://opendata.arcgis.com/datasets/79f08c38e78c4fe0b0550c7e96c5a999_0.geojson") as url:
+        countries = json.loads(url.read().decode())
+
     geojson['features'] = [feature for feature in geojson['features']
                            if feature['properties']['ctyua19cd'].startswith('E')]
 
+    countries['features'] = [feature for feature in countries['features']
+                             if not feature['properties']['ctry18cd'].startswith('E')]
+
     for feature in geojson['features']:
         feature['properties'] = {key: feature['properties'][key] for key in ['ctyua19cd']}
+
+    for feature in countries['features']:
+        feature['properties'] = {'ctyua19cd': feature['properties']['ctry18cd']}
+
+    geojson['features'].extend(countries['features'])
 
     with open('boundaries.geojson', 'w') as f:
         json.dump(geojson, f)
