@@ -10,6 +10,7 @@ from plotly import graph_objs as go
 import download
 import mongo
 from datetime import datetime
+from dash.exceptions import PreventUpdate
 
 try:
     import chromedriver_binary
@@ -97,13 +98,13 @@ def create_figure(timestamp=None):
     return fig
 
 
-def create_layout(figure):
+def create_layout():
     return html.Div(
         id='div',
         children=[
             dcc.Graph(
                 id='graph',
-                figure=figure,
+                figure=create_figure(),
                 style={"height": "90%"},
                 config={'displayModeBar': False},
             ),
@@ -118,17 +119,15 @@ def create_layout(figure):
         ], className="main")
 
 
-app.layout = create_layout(create_figure())
+app.layout = create_layout
 
 
 @app.callback(dash.dependencies.Output('graph', 'figure'),
-              [dash.dependencies.Input('div', 'id'),
-               dash.dependencies.Input('slider', 'value')])
-def update_figure(div_id, slider_value):
-    timestamp = dash.callback_context.triggered[0]['value']
-    figure = create_figure(timestamp=timestamp)
-    app.layout = create_layout(figure)
-    return figure
+              [dash.dependencies.Input('slider', 'value')])
+def update_figure(slider_value):
+    if slider_value is None:
+        raise PreventUpdate
+    return create_figure(timestamp=slider_value)
 
 
 if __name__ == '__main__':
