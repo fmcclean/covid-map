@@ -44,15 +44,14 @@ def create_figure(timestamp=None):
 
         df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
-        app.updated = download.updated()
-        date = pd.to_datetime(app.updated[8:])
-        date_string = date.strftime(date_format)
+        date = pd.to_datetime(download.updated()[8:])
 
         mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), date.timestamp())
 
     else:
         df = mongo.get_date(timestamp)
-        date_string = datetime.fromtimestamp(timestamp).strftime(date_format)
+
+        date = datetime.fromtimestamp(timestamp)
 
     df = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
 
@@ -81,21 +80,21 @@ def create_figure(timestamp=None):
         coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
         annotations=[
             go.layout.Annotation(
-                text='{}<br><a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>'.format(
-                    app.updated),
+                text='<a href="http://www.github.com/fmcclean/covid-map/">View code on GitHub</a>',
+                font={'size': 12},
                 showarrow=False,
                 x=0,
-                y=0,
+                y=1,
                 bgcolor="#ffffff",
                 opacity=0.8,
                 align='left'
             ),
 
             go.layout.Annotation(
-                text='<b>Cases by Population ({})</b>'.format(date_string),
+                text='<b>Cases by Population ({})</b>'.format(date.strftime('%d/%m/%y')),
                 showarrow=False,
                 x=0.5,
-                y=0.98,
+                y=0.9,
                 bgcolor="#ffffff",
                 opacity=0.8,
                 align='left',
@@ -131,15 +130,20 @@ def create_layout():
         min=min(dates).timestamp(),
         max=max(dates).timestamp(),
         step=None,
-        marks={int(date.timestamp()): {'label': date.strftime(date_format), 'style': {'fontSize': 20}}
+        marks={int(date.timestamp()): {'label': date.strftime('%d/%m'), 'style': {'fontSize': 20}}
                for date in dates},
         value=max(dates).timestamp(),
         )
 
-    return html.Div(children=[choropleth,
-                              graph,
-                              html.Div(slider, style={'marginLeft': '20px', 'marginRight': '20px'})],
-                    className="main")
+    return html.Div(children=[
+        choropleth,
+        graph,
+        html.Div(slider, style={'marginLeft': '20px',
+                                'marginRight': '20px',
+                                'marginBottom': '5px',
+                                'marginTop': '20px'}),
+    ],
+        className="main")
 
 
 app.layout = create_layout
