@@ -55,9 +55,7 @@ def create_figure(timestamp=None):
         df = mongo.get_date(timestamp)
         df['date'] = datetime.fromtimestamp(timestamp).strftime('%d/%m')
 
-    merged = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
-
-    df = pd.merge(df, merged.groupby(['GSS_CD', 'UTLA19NM'])['All Ages'].sum().reset_index())
+    df = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
 
     df['cases_by_pop'] = (df['TotalCases'] / df['All Ages'] * 10000).round(1)
 
