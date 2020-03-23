@@ -24,8 +24,6 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = 'COVID-19 Dash Map'
 server = app.server
 
-app.dates = mongo.get_available_dates()
-
 if os.path.exists('population.csv'):
     population = pd.read_csv('population.csv')
 else:
@@ -40,7 +38,7 @@ else:
 
 def create_figure(timestamp=None):
 
-    if not timestamp:
+    if not timestamp:  # creating for the first time
 
         df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
@@ -49,8 +47,6 @@ def create_figure(timestamp=None):
         df['date'] = datetime.fromtimestamp(timestamp).strftime('%d/%m')
 
         mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), timestamp)
-
-        app.dates = mongo.get_available_dates()
 
     else:
         df = mongo.get_date(timestamp)
@@ -99,22 +95,23 @@ def create_figure(timestamp=None):
 
 
 def create_layout():
-    return html.Div(
-        id='div',
-        children=[
-            dcc.Graph(
+    graph = dcc.Graph(
                 id='graph',
                 figure=create_figure(),
                 style={"height": "90%"},
-                config={'displayModeBar': False},
-            ),
+                config={'displayModeBar': False})
+    dates = mongo.get_available_dates()
+    return html.Div(
+        id='div',
+        children=[
+            graph,
             dcc.Slider(
                 id='slider',
-                min=min(app.dates).timestamp(),
-                max=max(app.dates).timestamp(),
+                min=min(dates).timestamp(),
+                max=max(dates).timestamp(),
                 step=None,
-                marks={int(date.timestamp()): date.strftime("%d/%m") for date in app.dates},
-                value=max(app.dates).timestamp()
+                marks={int(date.timestamp()): date.strftime("%d/%m") for date in dates},
+                value=max(dates).timestamp()
             ),
         ], className="main")
 
