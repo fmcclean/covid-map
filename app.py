@@ -14,7 +14,7 @@ from dash.exceptions import PreventUpdate
 
 try:
     import chromedriver_binary
-except:
+except ImportError:
     pass
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -35,6 +35,8 @@ if os.path.exists('boundaries.geojson'):
 else:
     geojson = download.boundaries()
 
+date_format = '%d/%m'
+
 
 def create_figure(timestamp=None):
 
@@ -44,13 +46,13 @@ def create_figure(timestamp=None):
 
         app.updated = download.updated()
         date = pd.to_datetime(app.updated[8:])
-        df['date'] = date.strftime('%d/%m')
+        date_string = date.strftime(date_format)
 
         mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), date.timestamp())
 
     else:
         df = mongo.get_date(timestamp)
-        df['date'] = datetime.fromtimestamp(timestamp).strftime('%d/%m')
+        date_string = datetime.fromtimestamp(timestamp).strftime(date_format)
 
     df = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
 
@@ -60,7 +62,7 @@ def create_figure(timestamp=None):
                                locations='GSS_CD',
                                color='cases_by_pop',
                                hover_name='UTLA19NM',
-                               hover_data=['TotalCases', 'date', 'All Ages'],
+                               hover_data=['TotalCases', 'All Ages'],
                                color_continuous_scale="Viridis",
                                featureidkey='properties.ctyua19cd',
                                mapbox_style="carto-positron",
@@ -69,8 +71,7 @@ def create_figure(timestamp=None):
                                opacity=0.5,
                                labels={'TotalCases': 'Total Cases', 'GSS_CD': 'Area Code',
                                        'All Ages': 'Total Population',
-                                       'cases_by_pop': 'Cases per 10,000 people',
-                                       'date':'Date'},
+                                       'cases_by_pop': 'Cases per 10,000 people'},
                                )
 
     fig.update_layout(
@@ -80,14 +81,27 @@ def create_figure(timestamp=None):
         coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
         annotations=[
             go.layout.Annotation(
-                text='{}<br><a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>'.format(app.updated),
+                text='{}<br><a href="http://www.github.com/fmcclean/covid-map/">See code on GitHub</a>'.format(
+                    app.updated),
                 showarrow=False,
                 x=0,
                 y=0,
                 bgcolor="#ffffff",
                 opacity=0.8,
                 align='left'
-            )],
+            ),
+
+            go.layout.Annotation(
+                text='<b>Cases by Population ({})</b>'.format(date_string),
+                showarrow=False,
+                x=0.5,
+                y=0.98,
+                bgcolor="#ffffff",
+                opacity=0.8,
+                align='left',
+                font={'size': 25}
+            )
+        ],
         uirevision=True
     )
 
@@ -100,20 +114,21 @@ def create_layout():
                 figure=create_figure(),
                 style={"height": "90%"},
                 config={'displayModeBar': False})
+
     dates = mongo.get_available_dates()
-    return html.Div(
-        id='div',
-        children=[
-            graph,
-            dcc.Slider(
-                id='slider',
-                min=min(dates).timestamp(),
-                max=max(dates).timestamp(),
-                step=None,
-                marks={int(date.timestamp()): date.strftime("%d/%m") for date in dates},
-                value=max(dates).timestamp()
-            ),
-        ], className="main")
+
+    slider = dcc.Slider(
+        id='slider',
+        min=min(dates).timestamp(),
+        max=max(dates).timestamp(),
+        step=None,
+        marks={int(date.timestamp()): {'label': date.strftime(date_format), 'style': {'fontSize': 20}}
+               for date in dates},
+        value=max(dates).timestamp(),
+        )
+
+    return html.Div(children=[graph, html.Div(slider, style={'marginLeft': '20px', 'marginRight': '20px'})],
+                    className="main")
 
 
 app.layout = create_layout
