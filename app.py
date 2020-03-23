@@ -91,7 +91,7 @@ def create_figure(timestamp=None):
             ),
 
             go.layout.Annotation(
-                text='<b>Cases by Population ({})</b>'.format(date.strftime('%d/%m/%y')),
+                text='<b>Cases per 10,000 People ({})</b>'.format(date.strftime('%d/%m/%y')),
                 showarrow=False,
                 x=0.5,
                 y=0.9,
