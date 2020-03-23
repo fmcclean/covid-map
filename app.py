@@ -107,7 +107,8 @@ def create_figure(timestamp=None):
     return fig
 
 
-graph_layout = {'margin': {"r": 30, "t": 10, "l": 30, "b": 40}}
+graph_layout = {'margin': {"r": 30, "t": 10, "l": 30, "b": 40},
+                'title': {'text': 'Click on a region to view time series', 'y': 0.95}}
 
 
 def create_layout():
@@ -159,11 +160,11 @@ def update_figure(slider_value):
 
 @app.callback(
     dash.dependencies.Output('graph', 'figure'),
-    [dash.dependencies.Input('choropleth', 'hoverData')])
-def display_hover_data(hover_data):
-    if hover_data is None:
+    [dash.dependencies.Input('choropleth', 'clickData')])
+def display_click_data(click_data):
+    if click_data is None:
         raise PreventUpdate
-    point = hover_data['points'][0]
+    point = click_data['points'][0]
     cases = mongo.get_location(point['location'])
     x, y = list(zip(*cases))
     return {'data': [{'x': x, 'y': [total*10000/point['customdata'][1] for total in y]}],
