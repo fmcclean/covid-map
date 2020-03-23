@@ -75,7 +75,7 @@ def create_figure(timestamp=None):
                                )
 
     fig.update_layout(
-        margin={"r": 0, "t": 0, "l": 0, "b": 20},
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
         font=dict(size=20),
         hoverlabel=dict(font=dict(size=20)),
         coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
@@ -108,12 +108,21 @@ def create_figure(timestamp=None):
     return fig
 
 
+graph_layout = {'margin': {"r": 30, "t": 10, "l": 30, "b": 40}}
+
+
 def create_layout():
-    graph = dcc.Graph(
-                id='graph',
+    choropleth = dcc.Graph(
+                id='choropleth',
                 figure=create_figure(),
-                style={"height": "90%"},
+                style={"height": "70%"},
                 config={'displayModeBar': False})
+
+    graph = dcc.Graph(
+        id='graph',
+        figure={'layout': graph_layout},
+        style={"height": "20%"},
+        config={'displayModeBar': False})
 
     dates = mongo.get_available_dates()
 
@@ -127,19 +136,34 @@ def create_layout():
         value=max(dates).timestamp(),
         )
 
-    return html.Div(children=[graph, html.Div(slider, style={'marginLeft': '20px', 'marginRight': '20px'})],
+    return html.Div(children=[choropleth,
+                              graph,
+                              html.Div(slider, style={'marginLeft': '20px', 'marginRight': '20px'})],
                     className="main")
 
 
 app.layout = create_layout
 
 
-@app.callback(dash.dependencies.Output('graph', 'figure'),
+@app.callback(dash.dependencies.Output('choropleth', 'figure'),
               [dash.dependencies.Input('slider', 'value')])
 def update_figure(slider_value):
     if slider_value is None:
         raise PreventUpdate
     return create_figure(timestamp=slider_value)
+
+
+@app.callback(
+    dash.dependencies.Output('graph', 'figure'),
+    [dash.dependencies.Input('choropleth', 'hoverData')])
+def display_hover_data(hover_data):
+    if hover_data is None:
+        raise PreventUpdate
+    point = hover_data['points'][0]
+    cases = mongo.get_location(point['location'])
+    x, y = list(zip(*cases))
+    return {'data': [{'x': x, 'y': [total*10000/point['customdata'][1] for total in y]}],
+            'layout': {**graph_layout, 'title': {'text': point['hovertext'], 'y': 0.95}}}
 
 
 if __name__ == '__main__':

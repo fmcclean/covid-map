@@ -26,3 +26,8 @@ def get_date(timestamp):
         days.find_one(
             {'date': timestamp}
         )).reset_index().rename(columns={'cases': 'TotalCases', 'index': 'GSS_CD'})
+
+
+def get_location(location):
+    return [(datetime.fromtimestamp(loc['date']).isoformat(), loc['cases'][location])
+            for loc in days.find({}, {'date': 1, 'cases.{}'.format(location): 1, '_id': -1})]
