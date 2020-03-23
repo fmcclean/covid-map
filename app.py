@@ -43,10 +43,10 @@ def create_figure(timestamp=None):
         df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
 
         app.updated = download.updated()
-        timestamp = pd.to_datetime(app.updated[8:]).timestamp()
-        df['date'] = datetime.fromtimestamp(timestamp).strftime('%d/%m')
+        date = pd.to_datetime(app.updated[8:])
+        df['date'] = date.strftime('%d/%m')
 
-        mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), timestamp)
+        mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), date.timestamp())
 
     else:
         df = mongo.get_date(timestamp)
