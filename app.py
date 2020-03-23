@@ -168,7 +168,7 @@ def display_click_data(click_data):
     cases = mongo.get_location(point['location'])
     x, y = list(zip(*cases))
     return {'data': [{'x': x, 'y': [total*10000/point['customdata'][1] for total in y]}],
-            'layout': {**graph_layout, 'title': {'text': point['hovertext'], 'y': 0.95}}}
+            'layout': {**graph_layout, 'title': {'text': point['hovertext'], 'y': 0.8, 'x': 0.1}}}
 
 
 if __name__ == '__main__':
