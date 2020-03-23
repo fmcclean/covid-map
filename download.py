@@ -56,15 +56,9 @@ def population():
     with urllib.request.urlopen(req) as url:
         df = pd.read_excel(url.read(), sheet_name='MYE2-All', header=4).rename(columns={'Code': 'UTLA19CD',
                                                                                         'Name': 'UTLA19NM'})
-
-    # lookup = pd.read_csv('https://opendata.arcgis.com/datasets/4c6f3314565e43c5ac7885fd71347548_0.csv')
-
-    # df = pd.merge(df, lookup, left_on='Code', right_on='LSOA11CD')
-    #
     df = df.groupby(['UTLA19CD', 'UTLA19NM'])['All ages'].sum().reset_index()
 
     df.to_csv('population.csv', index=False)
-    # lookup.to_csv('lookup.csv')
 
     return df
 

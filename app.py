@@ -43,8 +43,19 @@ def create_figure(timestamp=None):
     if not timestamp:  # creating for the first time
 
         df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
-
         date = pd.to_datetime(download.updated()[8:])
+
+        indicators = pd.read_excel(
+            'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
+        indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
+        indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
+            columns={'ScotlandCases': 'S92000003',
+                     'WalesCases': 'W92000004',
+                     'NICases': 'N92000002'}).transpose().reset_index().rename(
+            columns={'index': 'GSS_CD', 0: 'TotalCases'})
+        if indicators_date == date:
+            print('same date')
+            df = df.append(indicators)
 
         mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), date.timestamp())
 
@@ -53,17 +64,7 @@ def create_figure(timestamp=None):
 
         date = datetime.fromtimestamp(timestamp)
 
-    indicators = pd.read_excel('https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
-    indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
-    indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
-        columns={'ScotlandCases': 'S92000003',
-                 'WalesCases': 'W92000004',
-                 'NICases': 'N92000002'}).transpose().reset_index().rename(columns={'index': 'GSS_CD', 0: 'TotalCases'})
-    df = df.append(indicators)
-
     df = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
-    df.to_csv('df.csv')
-    indicators.to_csv('indicators.csv')
 
     df['cases_by_pop'] = (df['TotalCases'] / df['All ages'] * 10000).round(1)
 
