@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 
 def boundaries():
     with urllib.request.urlopen(
-            "https://opendata.arcgis.com/datasets/56ae7efaabc841b4939385e2178437a3_0.geojson") as url:
+            "https://opendata.arcgis.com/datasets/d5dfaace0bbd4dea9255020b3c53284f_0.geojson") as url:
         geojson = json.loads(url.read().decode())
 
     with urllib.request.urlopen(

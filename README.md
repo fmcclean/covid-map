@@ -6,8 +6,8 @@ https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6
 ## DailyIndicators
 https://www.arcgis.com/home/item.html?id=bc8ee90225644ef7a6f4dd1b13ea1d67
 
-## Counties and Unitary Authorities (April 2019) Boundaries EW BGC
-https://geoportal.statistics.gov.uk/datasets/counties-and-unitary-authorities-april-2019-boundaries-ew-bgc
+## Counties and Unitary Authorities (April 2019) Boundaries EW BUC
+https://geoportal.statistics.gov.uk/datasets/counties-and-unitary-authorities-april-2019-boundaries-ew-buc
 
 ## Countries (December 2018) Boundaries UK BUC
 https://geoportal.statistics.gov.uk/datasets/countries-december-2018-boundaries-uk-buc
