@@ -9,7 +9,7 @@ import pandas as pd
 from plotly import graph_objs as go
 import download
 import mongo
-from datetime import datetime
+from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
 
 try:
@@ -120,6 +120,17 @@ def create_figure(timestamp=None):
 graph_layout = {'margin': {"r": 30, "t": 10, "l": 30, "b": 40},
                 'title': {'text': 'Click on a region to view time series', 'y': 0.95}}
 
+app.updated = None
+app.current_layout = None
+
+
+def update_layout():
+    if not app.current_layout or (datetime.now() - app.updated) > timedelta(minutes=1):
+        app.current_layout = create_layout()
+        app.updated = datetime.now()
+
+    return app.current_layout
+
 
 def create_layout():
     choropleth = dcc.Graph(
@@ -144,6 +155,7 @@ def create_layout():
         marks={int(date.timestamp()): {'label': date.strftime('%d/%m'), 'style': {'fontSize': 20}}
                for date in dates},
         value=max(dates).timestamp(),
+        updatemode='mouseup'
         )
 
     return html.Div(children=[
@@ -153,19 +165,27 @@ def create_layout():
                                 'marginRight': '20px',
                                 'marginBottom': '5px',
                                 'marginTop': '20px'}),
+        html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none'})
     ],
         className="main")
 
 
-app.layout = create_layout
+app.layout = update_layout
 
 
 @app.callback(dash.dependencies.Output('choropleth', 'figure'),
-              [dash.dependencies.Input('slider', 'value')])
-def update_figure(slider_value):
-    if slider_value is None:
+              [dash.dependencies.Input('slider', 'value')],
+              [dash.dependencies.State('previous_date', 'children')])
+def update_figure(slider_value, previous_date):
+    if slider_value == previous_date:
         raise PreventUpdate
     return create_figure(timestamp=slider_value)
+
+
+@app.callback(dash.dependencies.Output('previous_date', 'children'),
+              [dash.dependencies.Input('slider', 'value')])
+def update_previous_date(slider_value):
+    return slider_value
 
 
 @app.callback(
