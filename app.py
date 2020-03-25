@@ -73,16 +73,16 @@ def create_figure(timestamp=None):
                                color='cases_by_pop',
                                hover_name='UTLA19NM',
                                hover_data=['TotalCases', 'All ages'],
-                               color_continuous_scale="Viridis",
+                               color_continuous_scale='Greens',
                                featureidkey='properties.ctyua19cd',
-                               mapbox_style="carto-positron",
+                               mapbox_style="white-bg",
                                zoom=6,
-                               center={"lat": 53, "lon": -2},
-                               opacity=0.5,
+                               center={"lat": 54, "lon": -3},
                                labels={'TotalCases': 'Total Cases', 'GSS_CD': 'Area Code',
                                        'All ages': 'Total Population',
                                        'cases_by_pop': 'Cases per 10,000 people'},
                                )
+    fig.update_traces(marker={'line': {'width': 0.5}})
 
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
@@ -92,12 +92,11 @@ def create_figure(timestamp=None):
         annotations=[
             go.layout.Annotation(
                 text='<a href="http://www.github.com/fmcclean/covid-map/">View code on GitHub</a>',
-                font={'size': 12},
+                font={'size': 14},
                 showarrow=False,
                 x=0,
                 y=1,
                 bgcolor="#ffffff",
-                opacity=0.8,
                 align='left'
             ),
 
@@ -107,7 +106,6 @@ def create_figure(timestamp=None):
                 x=0.5,
                 y=0.9,
                 bgcolor="#ffffff",
-                opacity=0.8,
                 align='left',
                 font={'size': 25}
             )
@@ -129,7 +127,7 @@ app.current_layout = None
 
 def update_layout():
     app.not_updating.wait()
-    if not app.current_layout or (datetime.now() - app.updated) > timedelta(seconds=10):
+    if not app.current_layout or (datetime.now() - app.updated) > timedelta(minutes=1):
         app.not_updating.clear()
         app.current_layout = create_layout()
         app.updated = datetime.now()
