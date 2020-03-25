@@ -11,6 +11,7 @@ import download
 import mongo
 from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
+import threading
 
 try:
     import chromedriver_binary
@@ -120,14 +121,19 @@ def create_figure(timestamp=None):
 graph_layout = {'margin': {"r": 30, "t": 10, "l": 30, "b": 40},
                 'title': {'text': 'Click on a region to view time series', 'y': 0.95}}
 
-app.updated = None
+app.updated = datetime.now()
+app.not_updating = threading.Event()
+app.not_updating.set()
 app.current_layout = None
 
 
 def update_layout():
-    if not app.current_layout or (datetime.now() - app.updated) > timedelta(minutes=1):
+    app.not_updating.wait()
+    if not app.current_layout or (datetime.now() - app.updated) > timedelta(seconds=10):
+        app.not_updating.clear()
         app.current_layout = create_layout()
         app.updated = datetime.now()
+        app.not_updating.set()
 
     return app.current_layout
 
