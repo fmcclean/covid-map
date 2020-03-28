@@ -138,6 +138,8 @@ def create_figure(timestamp=None):
         uirevision=True
     )
 
+    fig.update_traces(fig.frames[-1].data[0])
+
     return fig
 
 
@@ -171,14 +173,14 @@ def create_layout():
     graph = dcc.Graph(
         id='graph',
         figure={'layout': graph_layout},
-        style={"height": "20%"},
+        style={"height": "30%"},
         config={'displayModeBar': False})
 
     dates = mongo.get_available_dates()
 
     return html.Div(children=[
-        choropleth,
         graph,
+        choropleth,
         html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none'})
     ],
         className="main")
