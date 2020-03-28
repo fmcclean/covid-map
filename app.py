@@ -72,7 +72,7 @@ def create_figure(timestamp=None):
         if scotland_date == date:
             df = df.append(scotland)
 
-        mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+        df = mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
 
     else:
         df = mongo.get_date(timestamp)

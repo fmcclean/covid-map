@@ -8,8 +8,13 @@ db = client[os.environ['DATABASE']]
 days = db["days"]
 
 
-def insert(cases, timestamp):
-    days.update_one({'date': timestamp}, {'$set': {'date': timestamp, 'cases': cases}}, upsert=True)
+def insert(cases: dict, timestamp):
+    document = days.find_one_and_update({'date': timestamp},
+                                        {'$set': {'date': timestamp,
+                                                  **{'cases.{}'.format(key): value for key, value in cases.items()}}},
+                                        upsert=True,
+                                        return_document=pymongo.ReturnDocument.AFTER)
+    return document_to_dataframe(document)
 
 
 def insert_from_file(path='../CountyUAs_cases_table-Mar21.csv', timestamp=datetime(2020, 3, 21).timestamp()):
@@ -22,13 +27,14 @@ def get_available_dates():
 
 
 def get_date(timestamp):
-    return pd.DataFrame(
-        days.find_one(
-            {'date': timestamp}
-        )).reset_index().rename(columns={'index': 'code'})
+    return document_to_dataframe(days.find_one({'date': timestamp}))
 
 
 def get_location(location):
     return [(datetime.fromtimestamp(loc['date']).isoformat(), loc['cases'][location])
             for loc in days.find({}, {'date': 1, 'cases.{}'.format(location): 1, '_id': -1}).sort('date')
             if location in loc['cases']]
+
+
+def document_to_dataframe(document):
+    return pd.DataFrame(document).reset_index().rename(columns={'index': 'code'})
