@@ -82,9 +82,32 @@ def create_figure(mode='density'):
 
     app.data = df
 
+    animation_frame = 'date'
+    animation_group = 'code'
+    hover_name = 'name'
+    hover_data = ['cases', 'population']
+    color_continuous_scale = px.colors.sequential.Viridis[::-1]
+    zoom = 6
+    center = {"lat": 54, "lon": -3}
+    labels = {'cases': 'Total Cases', 'code': 'Area Code',
+              'population': 'Total Population',
+              'cases_by_pop': 'Cases per 10,000 people'},
+
+
     if mode == 'density':
 
-        fig = px.density_mapbox(pd.merge(df, centroids, on='code'),
+        df = pd.merge(df, centroids)
+
+        fig = px.density_mapbox(df, lat='lat', lon='lon', z='cases',
+                                animation_frame=animation_frame,
+                                animation_group=animation_group,
+                                mapbox_style='carto-positron',
+                                hover_name=hover_name,
+                                hover_data=hover_data,
+                                color_continuous_scale=color_continuous_scale,
+                                labels=labels,
+                                zoom=zoom,
+                                center=center
                                 )
 
     else:
@@ -92,21 +115,19 @@ def create_figure(mode='density'):
         fig = px.choropleth_mapbox(df, geojson=geojson,
                                    locations='code',
                                    color='cases_by_pop',
-                                   animation_frame='date',
-                                   animation_group='code',
-                                   hover_name='name',
-                                   hover_data=['cases', 'population'],
-                                   color_continuous_scale=px.colors.sequential.Viridis[::-1],
+                                   animation_frame=animation_frame,
+                                   animation_group=animation_group,
+                                   hover_name=hover_name,
+                                   hover_data=hover_data,
+                                   color_continuous_scale=color_continuous_scale,
                                    featureidkey='properties.code',
                                    mapbox_style="white-bg",
-                                   zoom=6,
-                                   center={"lat": 54, "lon": -3},
-                                   labels={'cases': 'Total Cases', 'code': 'Area Code',
-                                           'population': 'Total Population',
-                                           'cases_by_pop': 'Cases per 10,000 people'},
+                                   zoom=zoom,
+                                   center=center,
+                                   labels=labels,
                                    )
 
-    fig.update_traces(marker={'line': {'width': 0.5}})
+        fig.update_traces(marker={'line': {'width': 0.5}})
 
     slider = fig['layout']['sliders'][0]
     slider['active'] = len(slider.steps)-1
@@ -206,7 +227,7 @@ def display_click_data(click_data):
     if click_data is None:
         raise PreventUpdate
     point = click_data['points'][0]
-    cases = app.data[app.data.code == point['location']]
+    cases = app.data[app.data.code == point['id']]
     x = cases.date.values
     y = cases.cases_by_pop.values
     return {'data': [{'x': x, 'y': y}],
