@@ -229,7 +229,10 @@ def display_click_data(click_data):
     point = click_data['points'][0]
     cases = app.data[app.data.code == point['id']]
     x = cases.date.values
-    y = cases.cases_by_pop.values
+    if 'lat' in point.keys():
+        y = cases.cases.values
+    else:
+        y = cases.cases_by_pop.values
     return {'data': [{'x': x, 'y': y}],
             'layout': {**graph_layout, 'title': {'text': point['hovertext'],
                                                  'y': 0.8, 'x': 0.1
