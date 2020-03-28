@@ -79,6 +79,10 @@ def create_figure(timestamp=None):
 
         date = datetime.fromtimestamp(timestamp)
 
+    # Remove scotland boundary if nhs regions exist
+    if 'S08000015' in df.code.values:
+        df = df[df.code != 'S92000003']
+
     df = pd.merge(df, population)
 
     df['cases_by_pop'] = (df.cases / df.population * 10000).round(1)
