@@ -108,10 +108,11 @@ def create_figure(timestamp=None):
 
     slider = fig['layout']['sliders'][0]
     slider['active'] = len(slider.steps)-1
+    slider['pad']['t'] = 0
+    slider['currentvalue'] = {'prefix': ''}
 
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        font=dict(size=20),
         hoverlabel=dict(font=dict(size=20)),
         coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
         annotations=[
@@ -126,7 +127,7 @@ def create_figure(timestamp=None):
             ),
 
             go.layout.Annotation(
-                # text='<b>Cases per 10,000 People ({})</b>'.format(date.strftime('%d/%m/%y')),
+                text='<b>Cases per 10,000 People</b>',
                 showarrow=False,
                 x=0.5,
                 y=0.9,
@@ -143,8 +144,11 @@ def create_figure(timestamp=None):
     return fig
 
 
-graph_layout = {'margin': {"r": 30, "t": 10, "l": 30, "b": 40},
-                'title': {'text': 'Click on a region to view time series', 'y': 0.95}}
+graph_layout = {
+    'margin': {"r": 30, "t": 10, "l": 30, "b": 40},
+                'title': {'text': 'Click on a region to view time series',
+                          'y': 0.95
+                          }}
 
 app.updated = datetime.now()
 app.not_updating = threading.Event()
@@ -179,8 +183,8 @@ def create_layout():
     dates = mongo.get_available_dates()
 
     return html.Div(children=[
-        graph,
         choropleth,
+        graph,
         html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none'})
     ],
         className="main")
@@ -199,7 +203,9 @@ def display_click_data(click_data):
     cases = mongo.get_location(point['location'])
     x, y = list(zip(*cases))
     return {'data': [{'x': x, 'y': [total*10000/point['customdata'][1] for total in y]}],
-            'layout': {**graph_layout, 'title': {'text': point['hovertext'], 'y': 0.8, 'x': 0.1}}}
+            'layout': {**graph_layout, 'title': {'text': point['hovertext'],
+                                                 'y': 0.8, 'x': 0.1
+                                                 }}}
 
 
 if __name__ == '__main__':
