@@ -9,12 +9,11 @@ days = db["days"]
 
 
 def insert(cases: dict, timestamp):
-    document = days.find_one_and_update({'date': timestamp},
-                                        {'$set': {'date': timestamp,
-                                                  **{'cases.{}'.format(key): value for key, value in cases.items()}}},
-                                        upsert=True,
-                                        return_document=pymongo.ReturnDocument.AFTER)
-    return document_to_dataframe(document)
+    days.update(
+        {'date': timestamp},
+        {'$set': {'date': timestamp,
+                  **{'cases.{}'.format(key): value for key, value in cases.items()}}},
+        upsert=True)
 
 
 def insert_from_file(path='../CountyUAs_cases_table-Mar21.csv', timestamp=datetime(2020, 3, 21).timestamp()):

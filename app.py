@@ -39,53 +39,46 @@ else:
 date_format = '%d/%m'
 
 
-def create_figure(timestamp=None):
+def create_figure():
 
-    if not timestamp:  # creating for the first time
+    df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
+                     ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
+    date = pd.to_datetime(download.updated()[8:])
 
-        # df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
-        #                  ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
-        # date = pd.to_datetime(download.updated()[8:])
-        #
-        # indicators = pd.read_excel(
-        #     'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
-        # indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
-        # indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
-        #     columns={'ScotlandCases': 'S92000003',
-        #              'WalesCases': 'W92000004',
-        #              'NICases': 'N92000002'}).transpose().reset_index().rename(
-        #     columns={'index': 'code', 0: 'cases'})
-        # if indicators_date == date:
-        #     df = df.append(indicators)
-        #
-        # scotland_html = download.scotland_html()
-        # scotland = pd.read_html(scotland_html)[0].rename(
-        #     columns={'Positive cases': 'cases'}
-        # )
-        # scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
-        # scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
-        #
-        # scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
-        #
-        # scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
-        #
-        # if scotland_date == date:
-        #     df = df.append(scotland)
+    indicators = pd.read_excel(
+        'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
+    indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
+    indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
+        columns={'ScotlandCases': 'S92000003',
+                 'WalesCases': 'W92000004',
+                 'NICases': 'N92000002'}).transpose().reset_index().rename(
+        columns={'index': 'code', 0: 'cases'})
+    if indicators_date == date:
+        df = df.append(indicators)
 
-        df = mongo.get_all_documents()
+    scotland_html = download.scotland_html()
+    scotland = pd.read_html(scotland_html)[0].rename(
+        columns={'Positive cases': 'cases'}
+    )
+    scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
+    scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
 
-    else:
-        df = mongo.get_date(timestamp)
+    scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
 
-        date = datetime.fromtimestamp(timestamp)
+    scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
 
-    # Remove scotland boundary if nhs regions exist
-    # if 'S08000015' in df.code.values:
-    #     df = df[df.code != 'S92000003']
+    if scotland_date == date:
+        df = df.append(scotland)
+
+    mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+
+    df = mongo.get_all_documents()
 
     df = pd.merge(df, population)
 
     df['cases_by_pop'] = (df.cases / df.population * 10000).round(1)
+
+    app.data = df
 
     fig = px.choropleth_mapbox(df, geojson=geojson,
                                locations='code',
@@ -146,14 +139,13 @@ def create_figure(timestamp=None):
 
 graph_layout = {
     'margin': {"r": 30, "t": 10, "l": 30, "b": 40},
-                'title': {'text': 'Click on a region to view time series',
-                          'y': 0.95
-                          }}
+    'title': {'text': 'Click on a region to view time series', 'y': 0.95}}
 
 app.updated = datetime.now()
 app.not_updating = threading.Event()
 app.not_updating.set()
 app.current_layout = None
+app.data = pd.DataFrame()
 
 
 def update_layout():
@@ -200,9 +192,10 @@ def display_click_data(click_data):
     if click_data is None:
         raise PreventUpdate
     point = click_data['points'][0]
-    cases = mongo.get_location(point['location'])
-    x, y = list(zip(*cases))
-    return {'data': [{'x': x, 'y': [total*10000/point['customdata'][1] for total in y]}],
+    cases = app.data[app.data.code == point['location']]
+    x = cases.date.values
+    y = cases.cases_by_pop.values
+    return {'data': [{'x': x, 'y': y}],
             'layout': {**graph_layout, 'title': {'text': point['hovertext'],
                                                  'y': 0.8, 'x': 0.1
                                                  }}}
