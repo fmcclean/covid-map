@@ -78,6 +78,9 @@ def create_figure():
 
     df['cases_by_pop'] = (df.cases / df.population * 10000).round(1)
 
+    if df.equals(app.data):
+        return
+
     app.data = df
 
     fig = px.choropleth_mapbox(df, geojson=geojson,
