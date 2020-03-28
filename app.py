@@ -41,6 +41,7 @@ centroids = pd.read_csv('centroids.csv')
 
 date_format = '%d/%m'
 
+
 def update_data():
     df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
                      ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
@@ -83,6 +84,7 @@ def update_data():
 
     app.choropleth = create_figure('choropleth')
     app.density = create_figure('density')
+
 
 def create_figure(mode='choropleth'):
 
@@ -143,11 +145,11 @@ def create_figure(mode='choropleth'):
     buttons.x = 0.2
     buttons.y = 1
 
-
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         hoverlabel=dict(font=dict(size=20)),
-        coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>' if mode == 'choropleth' else ''}, 'tickangle': -90}},
+        coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>' if mode == 'choropleth' else ''},
+                                'tickangle': -90}},
         annotations=[
             go.layout.Annotation(
                 text='<a href="http://www.github.com/fmcclean/covid-map/">View code on GitHub</a>',
@@ -160,7 +162,7 @@ def create_figure(mode='choropleth'):
             ),
 
             go.layout.Annotation(
-                text='<b>Cases per 10,000 People</b>' if mode=='choropleth' else '<b>Number of Cases</b>',
+                text='<b>Cases per 10,000 People</b>' if mode == 'choropleth' else '<b>Number of Cases</b>',
                 showarrow=False,
                 x=0.5,
                 y=0.9,
@@ -227,16 +229,11 @@ def create_layout():
     )
 
     return html.Div(children=[
-        html.Div([html.P('Heatmap',
-                         # style={'margin':'20px', 'padding': '20px'}
-                         ),
-                  html.Div(toggle, style={'padding':'20px'}),
-                  html.P('Choropleth',
-                         # style= {'margin':'20px', 'padding': '20px'}
-                         )],
+        html.Div([html.P('Heatmap'),
+                  html.Div(toggle, style={'padding': '20px'}),
+                  html.P('Choropleth')],
                  style={'position': 'absolute', 'zIndex': 100, 'right': '100px', 'top': '30px',
-                        'background':'white', 'textAlign': 'center'
-                                  }),
+                        'background': 'white', 'textAlign': 'center'}),
         choropleth,
         graph,
         html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none'})
@@ -265,8 +262,9 @@ def display_click_data(click_data):
                                                  'y': 0.8, 'x': 0.1
                                                  }}}
 
+
 @app.callback(dash.dependencies.Output('choropleth', 'figure'),
-    [dash.dependencies.Input('toggle', 'value')])
+              [dash.dependencies.Input('toggle', 'value')])
 def update_figure_type(toggle_value):
     return app.density if toggle_value else app.choropleth
 
