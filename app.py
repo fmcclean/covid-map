@@ -58,7 +58,7 @@ def create_figure(timestamp=None):
         if indicators_date == date:
             df = df.append(indicators)
 
-        scotland_html = download.scotland()
+        scotland_html = download.scotland_html()
         scotland = pd.read_html(scotland_html)[0].rename(
             columns={'Positive cases': 'cases'}
         )
