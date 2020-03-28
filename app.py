@@ -12,6 +12,7 @@ import mongo
 from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
 import threading
+import dash_daq as daq
 
 try:
     import chromedriver_binary
@@ -36,11 +37,12 @@ if os.path.exists('boundaries.geojson'):
 else:
     geojson = download.boundaries()
 
+centroids = pd.read_csv('centroids.csv')
+
 date_format = '%d/%m'
 
 
-def create_figure():
-
+def update_data():
     df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
                      ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
     date = pd.to_datetime(download.updated()[8:])
@@ -80,24 +82,59 @@ def create_figure():
 
     app.data = df
 
-    fig = px.choropleth_mapbox(df, geojson=geojson,
-                               locations='code',
-                               color='cases_by_pop',
-                               animation_frame='date',
-                               animation_group='code',
-                               hover_name='name',
-                               hover_data=['cases', 'population'],
-                               color_continuous_scale=px.colors.sequential.Viridis[::-1],
-                               featureidkey='properties.code',
-                               mapbox_style="white-bg",
-                               zoom=6,
-                               center={"lat": 54, "lon": -3},
-                               labels={'cases': 'Total Cases', 'code': 'Area Code',
-                                       'population': 'Total Population',
-                                       'cases_by_pop': 'Cases per 10,000 people'},
-                               )
+    app.choropleth = create_figure('choropleth')
+    app.density = create_figure('density')
 
-    fig.update_traces(marker={'line': {'width': 0.5}})
+
+def create_figure(mode='choropleth'):
+
+    animation_frame = 'date'
+    animation_group = 'code'
+    hover_name = 'name'
+    hover_data = ['cases', 'population']
+    color_continuous_scale = px.colors.sequential.Viridis[::-1]
+    zoom = 6
+    center = {"lat": 54, "lon": -3}
+    labels = {'cases': 'Total Cases', 'code': 'Area Code',
+              'population': 'Total Population',
+              'cases_by_pop': 'Cases per 10,000 people'},
+
+    if mode == 'density':
+
+        df = pd.merge(app.data, centroids)
+
+        fig = px.density_mapbox(df, lat='lat', lon='lon', z='cases',
+                                animation_frame=animation_frame,
+                                animation_group=animation_group,
+                                mapbox_style='carto-positron',
+                                hover_name=hover_name,
+                                hover_data=hover_data,
+                                color_continuous_scale=color_continuous_scale,
+                                labels=labels,
+                                zoom=zoom,
+                                center=center,
+                                range_color=(0, df.cases.max())
+                                )
+
+    else:
+
+        fig = px.choropleth_mapbox(app.data, geojson=geojson,
+                                   locations='code',
+                                   color='cases_by_pop',
+                                   animation_frame=animation_frame,
+                                   animation_group=animation_group,
+                                   hover_name=hover_name,
+                                   hover_data=hover_data,
+                                   color_continuous_scale=color_continuous_scale,
+                                   featureidkey='properties.code',
+                                   mapbox_style="white-bg",
+                                   zoom=zoom,
+                                   center=center,
+                                   labels=labels,
+                                   range_color=(0, app.data.cases_by_pop.max())
+                                   )
+
+        fig.update_traces(marker={'line': {'width': 0.5}})
 
     slider = fig['layout']['sliders'][0]
     slider['active'] = len(slider.steps)-1
@@ -108,11 +145,11 @@ def create_figure():
     buttons.x = 0.2
     buttons.y = 1
 
-
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         hoverlabel=dict(font=dict(size=20)),
-        coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>'}, 'tickangle': -90}},
+        coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>' if mode == 'choropleth' else ''},
+                                'tickangle': -90}},
         annotations=[
             go.layout.Annotation(
                 text='<a href="http://www.github.com/fmcclean/covid-map/">View code on GitHub</a>',
@@ -125,7 +162,7 @@ def create_figure():
             ),
 
             go.layout.Annotation(
-                text='<b>Cases per 10,000 People</b>',
+                text='<b>Cases per 10,000 People</b>' if mode == 'choropleth' else '<b>Number of Cases</b>',
                 showarrow=False,
                 x=0.5,
                 y=0.9,
@@ -150,6 +187,8 @@ app.updated = datetime.now()
 app.not_updating = threading.Event()
 app.not_updating.set()
 app.current_layout = None
+app.density = None
+app.choropleth = None
 app.data = pd.DataFrame()
 
 
@@ -165,9 +204,12 @@ def update_layout():
 
 
 def create_layout():
+
+    update_data()
+
     choropleth = dcc.Graph(
                 id='choropleth',
-                figure=create_figure(),
+                figure=app.choropleth,
                 style={"height": "80%"},
                 config={'displayModeBar': False})
 
@@ -179,7 +221,19 @@ def create_layout():
 
     dates = mongo.get_available_dates()
 
+    toggle = daq.ToggleSwitch(
+        id='toggle',
+        value=False,
+        vertical=True
+
+    )
+
     return html.Div(children=[
+        html.Div([html.P('Heatmap'),
+                  html.Div(toggle, style={'padding': '20px'}),
+                  html.P('Choropleth')],
+                 style={'position': 'absolute', 'zIndex': 100, 'right': '100px', 'top': '30px',
+                        'background': 'white', 'textAlign': 'center'}),
         choropleth,
         graph,
         html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none'})
@@ -197,13 +251,22 @@ def display_click_data(click_data):
     if click_data is None:
         raise PreventUpdate
     point = click_data['points'][0]
-    cases = app.data[app.data.code == point['location']]
+    cases = app.data[app.data.code == point['id']]
     x = cases.date.values
-    y = cases.cases_by_pop.values
+    if 'lat' in point.keys():
+        y = cases.cases.values
+    else:
+        y = cases.cases_by_pop.values
     return {'data': [{'x': x, 'y': y}],
             'layout': {**graph_layout, 'title': {'text': point['hovertext'],
                                                  'y': 0.8, 'x': 0.1
                                                  }}}
+
+
+@app.callback(dash.dependencies.Output('choropleth', 'figure'),
+              [dash.dependencies.Input('toggle', 'value')])
+def update_figure_type(toggle_value):
+    return app.density if toggle_value else app.choropleth
 
 
 if __name__ == '__main__':
