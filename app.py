@@ -58,6 +58,13 @@ def create_figure(timestamp=None):
         if indicators_date == date:
             df = df.append(indicators)
 
+        scotland = pd.read_html('https://www.gov.scot/coronavirus-covid-19/')[0].rename(
+            columns={'Positive cases': 'cases'}
+        )
+        scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
+
+        scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
+
         mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
 
     else:

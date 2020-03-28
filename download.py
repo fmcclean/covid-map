@@ -99,3 +99,20 @@ def updated():
     html = html[:html.find('<')]
     browser.quit()
     return html
+
+scotland_codes = {
+    'Ayrshire and Arran': 'S08000015',
+    'Borders': 'S08000016',
+    'Dumfries and Galloway': 'S08000017',
+    'Forth Valley': 'S08000019',
+    'Grampian': 'S08000020',
+    'Highland': 'S08000022',
+    'Lothian': 'S08000024',
+    'Orkney': 'S08000025',
+    'Shetland': 'S08000026',
+    'Western Isles': 'S08000028',
+    'Fife': 'S08000029',
+    'Tayside': 'S08000030',
+    'Greater Glasgow and Clyde': 'S08000031',
+    'Lanarkshire': 'S08000032'
+}
