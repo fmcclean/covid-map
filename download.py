@@ -24,7 +24,7 @@ def boundaries():
                            if feature['properties']['ctyua19cd'].startswith('E')]
 
     countries['features'] = [feature for feature in countries['features']
-                             if not feature['properties']['ctry18cd'].startswith('E')]
+                             if not feature['properties']['ctry18cd'][0] in ['E', 'S']]
 
     for feature in geojson['features']:
         feature['properties'] = {'code': feature['properties']['ctyua19cd']}

@@ -65,6 +65,8 @@ def create_figure(timestamp=None):
 
         scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
 
+        df = df.append(scotland)
+
         mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
 
     else:
