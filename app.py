@@ -176,45 +176,15 @@ def create_layout():
 
     dates = mongo.get_available_dates()
 
-    slider = dcc.Slider(
-        id='slider',
-        min=min(dates).timestamp(),
-        max=max(dates).timestamp(),
-        step=None,
-        marks={int(date.timestamp()): {'label': date.strftime('%d/%m'), 'style': {'fontSize': 20}}
-               for date in dates},
-        value=max(dates).timestamp(),
-        updatemode='mouseup'
-        )
-
     return html.Div(children=[
         choropleth,
         graph,
-        html.Div(slider, style={'marginLeft': '20px',
-                                'marginRight': '20px',
-                                'marginBottom': '5px',
-                                'marginTop': '20px'}),
         html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none'})
     ],
         className="main")
 
 
 app.layout = update_layout
-
-
-@app.callback(dash.dependencies.Output('choropleth', 'figure'),
-              [dash.dependencies.Input('slider', 'value')],
-              [dash.dependencies.State('previous_date', 'children')])
-def update_figure(slider_value, previous_date):
-    if slider_value == previous_date:
-        raise PreventUpdate
-    return create_figure(timestamp=slider_value)
-
-
-@app.callback(dash.dependencies.Output('previous_date', 'children'),
-              [dash.dependencies.Input('slider', 'value')])
-def update_previous_date(slider_value):
-    return slider_value
 
 
 @app.callback(
