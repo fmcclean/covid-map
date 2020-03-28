@@ -12,5 +12,8 @@ https://geoportal.statistics.gov.uk/datasets/counties-and-unitary-authorities-ap
 ## Countries (December 2018) Boundaries UK BUC
 https://geoportal.statistics.gov.uk/datasets/countries-december-2018-boundaries-uk-buc
 
+## Scotland NHS Health Boards (simplified to 0.1% using mapshaper.org)
+https://data.gov.uk/dataset/27d0fe5f-79bb-4116-aec9-a8e565ff756a/nhs-health-boards
+
 ## Estimates of the population for the UK, England and Wales, Scotland and Northern Ireland - Mid-2018: 2019 LA boundaries
 https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/populationestimatesforukenglandandwalesscotlandandnorthernireland

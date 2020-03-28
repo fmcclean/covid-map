@@ -17,6 +17,9 @@ def boundaries():
             "https://opendata.arcgis.com/datasets/629c303e07ee4ad09a4dfd0bfea499ec_0.geojson") as url:
         countries = json.loads(url.read().decode())
 
+    with open('scotland.geojson') as f:
+        scotland = json.load(f)
+
     geojson['features'] = [feature for feature in geojson['features']
                            if feature['properties']['ctyua19cd'].startswith('E')]
 
@@ -29,7 +32,11 @@ def boundaries():
     for feature in countries['features']:
         feature['properties'] = {'ctyua19cd': feature['properties']['ctry18cd']}
 
+    for feature in scotland['features']:
+        feature['properties'] = {'ctyua19cd': feature['properties']['HBCode']}
+
     geojson['features'].extend(countries['features'])
+    geojson['features'].extend(scotland['features'])
 
     with open('boundaries.geojson', 'w') as f:
         json.dump(geojson, f)
