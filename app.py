@@ -43,36 +43,36 @@ def create_figure(timestamp=None):
 
     if not timestamp:  # creating for the first time
 
-        df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
-                         ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
-        date = pd.to_datetime(download.updated()[8:])
+        # df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
+        #                  ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
+        # date = pd.to_datetime(download.updated()[8:])
+        #
+        # indicators = pd.read_excel(
+        #     'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
+        # indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
+        # indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
+        #     columns={'ScotlandCases': 'S92000003',
+        #              'WalesCases': 'W92000004',
+        #              'NICases': 'N92000002'}).transpose().reset_index().rename(
+        #     columns={'index': 'code', 0: 'cases'})
+        # if indicators_date == date:
+        #     df = df.append(indicators)
+        #
+        # scotland_html = download.scotland_html()
+        # scotland = pd.read_html(scotland_html)[0].rename(
+        #     columns={'Positive cases': 'cases'}
+        # )
+        # scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
+        # scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
+        #
+        # scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
+        #
+        # scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
+        #
+        # if scotland_date == date:
+        #     df = df.append(scotland)
 
-        indicators = pd.read_excel(
-            'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
-        indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
-        indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
-            columns={'ScotlandCases': 'S92000003',
-                     'WalesCases': 'W92000004',
-                     'NICases': 'N92000002'}).transpose().reset_index().rename(
-            columns={'index': 'code', 0: 'cases'})
-        if indicators_date == date:
-            df = df.append(indicators)
-
-        scotland_html = download.scotland_html()
-        scotland = pd.read_html(scotland_html)[0].rename(
-            columns={'Positive cases': 'cases'}
-        )
-        scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
-        scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
-
-        scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
-
-        scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
-
-        if scotland_date == date:
-            df = df.append(scotland)
-
-        df = mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+        df = mongo.get_all_documents()
 
     else:
         df = mongo.get_date(timestamp)
@@ -80,8 +80,8 @@ def create_figure(timestamp=None):
         date = datetime.fromtimestamp(timestamp)
 
     # Remove scotland boundary if nhs regions exist
-    if 'S08000015' in df.code.values:
-        df = df[df.code != 'S92000003']
+    # if 'S08000015' in df.code.values:
+    #     df = df[df.code != 'S92000003']
 
     df = pd.merge(df, population)
 
@@ -90,6 +90,8 @@ def create_figure(timestamp=None):
     fig = px.choropleth_mapbox(df, geojson=geojson,
                                locations='code',
                                color='cases_by_pop',
+                               animation_frame='date',
+                               animation_group='code',
                                hover_name='name',
                                hover_data=['cases', 'population'],
                                color_continuous_scale=px.colors.sequential.Viridis[::-1],
@@ -101,7 +103,11 @@ def create_figure(timestamp=None):
                                        'population': 'Total Population',
                                        'cases_by_pop': 'Cases per 10,000 people'},
                                )
+
     fig.update_traces(marker={'line': {'width': 0.5}})
+
+    slider = fig['layout']['sliders'][0]
+    slider['active'] = len(slider.steps)-1
 
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
@@ -120,7 +126,7 @@ def create_figure(timestamp=None):
             ),
 
             go.layout.Annotation(
-                text='<b>Cases per 10,000 People ({})</b>'.format(date.strftime('%d/%m/%y')),
+                # text='<b>Cases per 10,000 People ({})</b>'.format(date.strftime('%d/%m/%y')),
                 showarrow=False,
                 x=0.5,
                 y=0.9,

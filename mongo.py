@@ -38,3 +38,13 @@ def get_location(location):
 
 def document_to_dataframe(document):
     return pd.DataFrame(document).reset_index().rename(columns={'index': 'code'})
+
+
+def get_all_documents():
+    docs = list(days.find({}, {'_id': 0}).sort('date'))
+    for doc in docs:
+        if 'S08000015' in doc['cases'].keys():
+            del doc['cases']['S92000003']
+    docs = pd.concat([document_to_dataframe(doc) for doc in docs])
+    docs['date'] = docs.date.apply(lambda x: datetime.fromtimestamp(x).strftime('%d/%m'))
+    return docs
