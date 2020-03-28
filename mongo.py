@@ -25,7 +25,7 @@ def get_date(timestamp):
     return pd.DataFrame(
         days.find_one(
             {'date': timestamp}
-        )).reset_index().rename(columns={'cases': 'TotalCases', 'index': 'GSS_CD'})
+        )).reset_index().rename(columns={'index': 'code'})
 
 
 def get_location(location):
