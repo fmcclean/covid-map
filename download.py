@@ -100,6 +100,11 @@ def updated():
     browser.quit()
     return html
 
+
+def scotland():
+    with urllib.request.urlopen('https://www.gov.scot/coronavirus-covid-19/') as url:
+        return url.read().decode()
+
 scotland_codes = {
     'Ayrshire and Arran': 'S08000015',
     'Borders': 'S08000016',
