@@ -102,7 +102,12 @@ def create_figure():
     slider = fig['layout']['sliders'][0]
     slider['active'] = len(slider.steps)-1
     slider['pad']['t'] = 0
-    slider['currentvalue'] = {'prefix': ''}
+    slider['currentvalue'] = {'visible': False}
+
+    buttons = fig.layout.updatemenus[0]
+    buttons.x = 0.2
+    buttons.y = 1
+
 
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
@@ -138,7 +143,7 @@ def create_figure():
 
 
 graph_layout = {
-    'margin': {"r": 30, "t": 10, "l": 30, "b": 40},
+    'margin': {"r": 30, "t": 10, "l": 30, "b": 15},
     'title': {'text': 'Click on a region to view time series', 'y': 0.95}}
 
 app.updated = datetime.now()
@@ -163,13 +168,13 @@ def create_layout():
     choropleth = dcc.Graph(
                 id='choropleth',
                 figure=create_figure(),
-                style={"height": "70%"},
+                style={"height": "80%"},
                 config={'displayModeBar': False})
 
     graph = dcc.Graph(
         id='graph',
         figure={'layout': graph_layout},
-        style={"height": "30%"},
+        style={"height": "20%"},
         config={'displayModeBar': False})
 
     dates = mongo.get_available_dates()
