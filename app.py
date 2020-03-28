@@ -36,10 +36,12 @@ if os.path.exists('boundaries.geojson'):
 else:
     geojson = download.boundaries()
 
+centroids = pd.read_csv('centroids.csv')
+
 date_format = '%d/%m'
 
 
-def create_figure():
+def create_figure(mode='density'):
 
     df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
                      ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
@@ -80,22 +82,29 @@ def create_figure():
 
     app.data = df
 
-    fig = px.choropleth_mapbox(df, geojson=geojson,
-                               locations='code',
-                               color='cases_by_pop',
-                               animation_frame='date',
-                               animation_group='code',
-                               hover_name='name',
-                               hover_data=['cases', 'population'],
-                               color_continuous_scale=px.colors.sequential.Viridis[::-1],
-                               featureidkey='properties.code',
-                               mapbox_style="white-bg",
-                               zoom=6,
-                               center={"lat": 54, "lon": -3},
-                               labels={'cases': 'Total Cases', 'code': 'Area Code',
-                                       'population': 'Total Population',
-                                       'cases_by_pop': 'Cases per 10,000 people'},
-                               )
+    if mode == 'density':
+
+        fig = px.density_mapbox(pd.merge(df, centroids, on='code'),
+                                )
+
+    else:
+
+        fig = px.choropleth_mapbox(df, geojson=geojson,
+                                   locations='code',
+                                   color='cases_by_pop',
+                                   animation_frame='date',
+                                   animation_group='code',
+                                   hover_name='name',
+                                   hover_data=['cases', 'population'],
+                                   color_continuous_scale=px.colors.sequential.Viridis[::-1],
+                                   featureidkey='properties.code',
+                                   mapbox_style="white-bg",
+                                   zoom=6,
+                                   center={"lat": 54, "lon": -3},
+                                   labels={'cases': 'Total Cases', 'code': 'Area Code',
+                                           'population': 'Total Population',
+                                           'cases_by_pop': 'Cases per 10,000 people'},
+                                   )
 
     fig.update_traces(marker={'line': {'width': 0.5}})
 
