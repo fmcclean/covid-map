@@ -27,13 +27,13 @@ def boundaries():
                              if not feature['properties']['ctry18cd'].startswith('E')]
 
     for feature in geojson['features']:
-        feature['properties'] = {key: feature['properties'][key] for key in ['ctyua19cd']}
+        feature['properties'] = {'code': feature['properties']['ctyua19cd']}
 
     for feature in countries['features']:
-        feature['properties'] = {'ctyua19cd': feature['properties']['ctry18cd']}
+        feature['properties'] = {'code': feature['properties']['ctry18cd']}
 
     for feature in scotland['features']:
-        feature['properties'] = {'ctyua19cd': feature['properties']['HBCode']}
+        feature['properties'] = {'code': feature['properties']['HBCode']}
 
     geojson['features'].extend(countries['features'])
     geojson['features'].extend(scotland['features'])
@@ -59,9 +59,10 @@ def population():
         )
 
     with urllib.request.urlopen(req) as url:
-        df = pd.read_excel(url.read(), sheet_name='MYE2-All', header=4).rename(columns={'Code': 'UTLA19CD',
-                                                                                        'Name': 'UTLA19NM'})
-    df = df.groupby(['UTLA19CD', 'UTLA19NM'])['All ages'].sum().reset_index()
+        df = pd.read_excel(url.read(), sheet_name='MYE2-All', header=4).rename(columns={'Code': 'code',
+                                                                                        'Name': 'name',
+                                                                                        'All ages': 'population'})
+    df = df.groupby(['code', 'name'])['population'].sum().reset_index()
 
     df.to_csv('population.csv', index=False)
 

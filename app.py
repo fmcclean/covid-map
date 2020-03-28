@@ -43,7 +43,8 @@ def create_figure(timestamp=None):
 
     if not timestamp:  # creating for the first time
 
-        df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data')
+        df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
+                         ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
         date = pd.to_datetime(download.updated()[8:])
 
         indicators = pd.read_excel(
@@ -53,33 +54,33 @@ def create_figure(timestamp=None):
             columns={'ScotlandCases': 'S92000003',
                      'WalesCases': 'W92000004',
                      'NICases': 'N92000002'}).transpose().reset_index().rename(
-            columns={'index': 'GSS_CD', 0: 'TotalCases'})
+            columns={'index': 'code', 0: 'cases'})
         if indicators_date == date:
             df = df.append(indicators)
 
-        mongo.insert(df.set_index('GSS_CD')['TotalCases'].to_dict(), date.timestamp())
+        mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
 
     else:
         df = mongo.get_date(timestamp)
 
         date = datetime.fromtimestamp(timestamp)
 
-    df = pd.merge(df, population, left_on='GSS_CD', right_on='UTLA19CD')
+    df = pd.merge(df, population)
 
-    df['cases_by_pop'] = (df['TotalCases'] / df['All ages'] * 10000).round(1)
+    df['cases_by_pop'] = (df.cases / df.population * 10000).round(1)
 
     fig = px.choropleth_mapbox(df, geojson=geojson,
-                               locations='GSS_CD',
+                               locations='code',
                                color='cases_by_pop',
-                               hover_name='UTLA19NM',
-                               hover_data=['TotalCases', 'All ages'],
+                               hover_name='name',
+                               hover_data=['cases', 'population'],
                                color_continuous_scale=px.colors.sequential.Viridis[::-1],
-                               featureidkey='properties.ctyua19cd',
+                               featureidkey='properties.code',
                                mapbox_style="white-bg",
                                zoom=6,
                                center={"lat": 54, "lon": -3},
-                               labels={'TotalCases': 'Total Cases', 'GSS_CD': 'Area Code',
-                                       'All ages': 'Total Population',
+                               labels={'cases': 'Total Cases', 'code': 'Area Code',
+                                       'population': 'Total Population',
                                        'cases_by_pop': 'Cases per 10,000 people'},
                                )
     fig.update_traces(marker={'line': {'width': 0.5}})
