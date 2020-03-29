@@ -1,0 +1,16 @@
+on:
+  push:
+    branches:
+      develop
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    name: Tests
+    steps:
+    - name: Tests
+      id: docker
+      uses: fmcclean/covid-map@develop
+      env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        DATABASE: ${{ secrets.DATABASE }}
