@@ -7,8 +7,8 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   env:
-    MONGODB_URI: ${{ secrets.MONGODB_URI }}
-    DATABASE: ${{ secrets.DATABASE }}
+    MONGODB_URI: $MONGODB_URI
+    DATABASE: $DATABASE
   entrypoint: 'python'
   args:
     - '-m'

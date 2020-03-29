@@ -11,3 +11,6 @@ jobs:
     - name: Run server
       id: docker
       uses: fmcclean/covid-map@develop
+      env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        DATABASE: ${{ secrets.DATABASE }}
