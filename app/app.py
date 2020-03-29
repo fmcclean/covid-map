@@ -131,9 +131,11 @@ class App(dash.Dash):
         slider['currentvalue'] = {'visible': False}
 
         buttons = fig.layout.updatemenus[0]
-        buttons.x = 0.2
-        buttons.y = 1
-
+        buttons.x = 0
+        buttons.y = 0
+        buttons.xanchor = 'left'
+        buttons.yanchor = 'bottom'
+        buttons.pad = {'r': 0, 't': 0, 'l': 50, 'b': 10}
         fig.update_layout(
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             hoverlabel=dict(font=dict(size=20)),
