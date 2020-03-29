@@ -200,8 +200,6 @@ class App(dash.Dash):
             style={"height": "20%"},
             config={'displayModeBar': False})
 
-        dates = mongo.get_available_dates()
-
         toggle = daq.ToggleSwitch(
             id='toggle',
             value=False,
