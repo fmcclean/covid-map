@@ -269,7 +269,7 @@ def update_figure_type(toggle_value, fig):
     active = fig['layout']['sliders'][0]['active']
     new_figure = app.density if toggle_value else app.choropleth
     new_figure['layout']['sliders'][0]['active'] = active
-    new_figure.update_traces(fig['frames'][active]['data'][0])
+    new_figure.update_traces(new_figure['frames'][active]['data'][0])
 
     return new_figure
 
