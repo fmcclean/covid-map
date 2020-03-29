@@ -50,29 +50,26 @@ class App(dash.Dash):
             df = df.append(indicators)
 
         scotland_html = download.scotland_html()
-        scotland = pd.read_html(scotland_html, header=0)[0].rename(
-            columns={'Positive cases': 'cases'}
-        )
         scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
         scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
 
-        scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
-
-        scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
-
         if scotland_date == date:
+            scotland = pd.read_html(scotland_html, header=0)[0].rename(columns={'Positive cases': 'cases'})
+            scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
+            scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
+            scotland['cases'] = scotland.cases.astype(str).str.replace('*', '').astype(int)
             df = df.append(scotland)
 
-        mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+        update_count = mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+
+        if update_count == 0 and len(self.data) > 0:
+            return
 
         df = mongo.get_all_documents()
 
         df = pd.merge(df, population)
 
         df['cases_by_pop'] = (df.cases / df.population * 10000).round(1)
-
-        if df.equals(self.data):
-            return
 
         self.data = df
 

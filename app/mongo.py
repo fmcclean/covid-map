@@ -9,11 +9,12 @@ days = db["days"]
 
 
 def insert(cases: dict, timestamp):
-    days.update_one(
+    response = days.update_one(
         {'date': timestamp},
         {'$set': {'date': timestamp,
                   **{'cases.{}'.format(key): value for key, value in cases.items()}}},
         upsert=True)
+    return response.modified_count
 
 
 def insert_from_file(path='../CountyUAs_cases_table-Mar21.csv', timestamp=datetime(2020, 3, 21).timestamp()):
