@@ -1,4 +1,7 @@
-on: [push]
+on:
+  push:
+    branches:
+      develop
 
 jobs:
   docker:
@@ -7,7 +10,7 @@ jobs:
     steps:
     - name: Build a docker image
       id: docker
-      uses: fmcclean/covid-map@v1.0
+      uses: fmcclean/covid-map@develop
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
         DATABASE: ${{ secrets.DATABASE }}
