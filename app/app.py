@@ -203,7 +203,10 @@ class App(dash.Dash):
             html.Div(children=[
                 dcc.Tabs([
                     dcc.Tab(label='Choropleth', children=[choropleth]),
-                    dcc.Tab(label='Density', children=[density])])
+                    dcc.Tab(label='Density', children=[density])],
+                    id='tabs',
+                    style={'height': '50px'}
+                )
             ], style={'height': '80%'}),
             graph
         ],
