@@ -9,7 +9,7 @@ days = db["days"]
 
 
 def insert(cases: dict, timestamp):
-    days.update(
+    days.update_one(
         {'date': timestamp},
         {'$set': {'date': timestamp,
                   **{'cases.{}'.format(key): value for key, value in cases.items()}}},

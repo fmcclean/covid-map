@@ -7,5 +7,12 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   env:
-    MONGODB_URI: $MONGODB_URI
-    DATABASE: $DATABASE
+    MONGODB_URI: ${{ secrets.MONGODB_URI }}
+    DATABASE: ${{ secrets.DATABASE }}
+  entrypoint: 'python'
+  args:
+    - '-m'
+    - 'unittest'
+    - 'discover'
+    - '-s'
+    - '/app'

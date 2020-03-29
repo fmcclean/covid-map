@@ -9,4 +9,4 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     chown root:root /usr/bin/chromedriver && \
     chmod +x /usr/bin/chromedriver
 COPY app /app/
-CMD ["gunicorn", "app:server", "--chdir", "/app"]
+ENTRYPOINT ["gunicorn", "app:server", "--chdir", "/app"]
