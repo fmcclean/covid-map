@@ -1,15 +1,12 @@
 import unittest
-import os
+from app import app
 
 
 class TestApp(unittest.TestCase):
-    def setUp(self):
-        os.chdir('app')
-        from app import app
-        self.app = app
 
     def test_update_data(self):
-        self.app.update_data()
+        app.update_data()
+
 
 if __name__ == '__main__':
     unittest.main()
