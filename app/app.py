@@ -217,8 +217,7 @@ class App(dash.Dash):
                             'background': 'white', 'textAlign': 'center'}),
             html.Div(choropleth, style={'display': 'block', 'height': '80%'}, id='choropleth-div'),
             html.Div(density, style={'visible': False}, id='density-div'),
-            graph,
-            html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none', 'height': '80%'})
+            graph
         ],
             className="main")
 
