@@ -185,7 +185,13 @@ class App(dash.Dash):
         choropleth = dcc.Graph(
             id='choropleth',
             figure=self.choropleth,
-            style={"height": "80%"},
+            style={"height": "100%"},
+            config={'displayModeBar': False})
+
+        density = dcc.Graph(
+            id='density',
+            figure=self.density,
+            style={"height": "100%"},
             config={'displayModeBar': False})
 
         graph = dcc.Graph(
@@ -209,9 +215,10 @@ class App(dash.Dash):
                       html.P('Choropleth')],
                      style={'position': 'absolute', 'zIndex': 100, 'right': '100px', 'top': '30px',
                             'background': 'white', 'textAlign': 'center'}),
-            choropleth,
+            html.Div(choropleth, style={'display': 'block', 'height': '80%'}, id='choropleth-div'),
+            html.Div(density, style={'visible': False}, id='density-div'),
             graph,
-            html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none'})
+            html.Div(max(dates).timestamp(), id='previous_date', style={'display': 'none', 'height': '80%'})
         ],
             className="main")
 
@@ -259,16 +266,18 @@ def display_click_data(click_data):
                                                  }}}
 
 
-@app.callback(dash.dependencies.Output('choropleth', 'figure'),
-              [dash.dependencies.Input('toggle', 'value')],
-              [dash.dependencies.State('choropleth', 'figure')])
-def update_figure_type(toggle_value, fig):
-    active = fig['layout']['sliders'][0]['active']
-    new_figure = app.density if toggle_value else app.choropleth
-    new_figure['layout']['sliders'][0]['active'] = active
-    new_figure.update_traces(new_figure['frames'][active]['data'][0])
+@app.callback(dash.dependencies.Output('density-div', 'style'),
+              [dash.dependencies.Input('toggle', 'value')])
+def update_figure_type(toggle_value):
 
-    return new_figure
+    return {"height": "80%", 'display': 'block' if toggle_value else 'none'}
+
+
+@app.callback(dash.dependencies.Output('choropleth-div', 'style'),
+              [dash.dependencies.Input('toggle', 'value')])
+def update_figure_type(toggle_value):
+
+    return {"height": "80%", 'display': 'none' if toggle_value else 'block'}
 
 
 if __name__ == '__main__':
