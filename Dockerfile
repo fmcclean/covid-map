@@ -8,6 +8,6 @@ RUN apt-get install -y unzip && unzip chromedriver_linux64.zip
 RUN mv chromedriver /usr/bin/chromedriver
 RUN chown root:root /usr/bin/chromedriver
 RUN chmod +x /usr/bin/chromedriver
-COPY . /app
+COPY app /app
 WORKDIR /app
 CMD gunicorn app:server

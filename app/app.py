@@ -26,18 +26,18 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = 'COVID-19 Dash Map'
 server = app.server
 
-if os.path.exists('population.csv'):
-    population = pd.read_csv('population.csv')
+if os.path.exists('data/population.csv'):
+    population = pd.read_csv('data/population.csv')
 else:
     population = download.population()
 
-if os.path.exists('boundaries.geojson'):
-    with open('boundaries.geojson') as f:
+if os.path.exists('data/boundaries.geojson'):
+    with open('data/boundaries.geojson') as f:
         geojson = json.load(f)
 else:
     geojson = download.boundaries()
 
-centroids = pd.read_csv('centroids.csv')
+centroids = pd.read_csv('data/centroids.csv')
 
 date_format = '%d/%m'
 

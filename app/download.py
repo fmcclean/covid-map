@@ -17,7 +17,7 @@ def boundaries():
             "https://opendata.arcgis.com/datasets/629c303e07ee4ad09a4dfd0bfea499ec_0.geojson") as url:
         countries = json.loads(url.read().decode())
 
-    with open('scotland.geojson') as f:
+    with open('data/scotland.geojson') as f:
         scotland = json.load(f)
 
     geojson['features'] = [feature for feature in geojson['features']
@@ -38,7 +38,7 @@ def boundaries():
     geojson['features'].extend(countries['features'])
     geojson['features'].extend(scotland['features'])
 
-    with open('boundaries.geojson', 'w') as f:
+    with open('data/boundaries.geojson', 'w') as f:
         json.dump(geojson, f)
 
     return geojson

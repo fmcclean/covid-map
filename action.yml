@@ -1,0 +1,11 @@
+name: 'Docker'
+description: 'Build a docker image'
+outputs:
+  time:
+    description: 'Build a docker image'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    MONGODB_URI: $MONGODB_URI
+    DATABASE: $DATABASE
