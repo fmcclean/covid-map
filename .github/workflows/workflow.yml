@@ -6,9 +6,9 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    name: Build docker image
+    name: Run server
     steps:
-    - name: Build a docker image
+    - name: Run server
       id: docker
       uses: fmcclean/covid-map@develop
       env:
