@@ -12,7 +12,6 @@ import mongo
 from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
 import threading
-import dash_daq as daq
 
 try:
     import chromedriver_binary
@@ -200,21 +199,12 @@ class App(dash.Dash):
             style={"height": "20%"},
             config={'displayModeBar': False})
 
-        toggle = daq.ToggleSwitch(
-            id='toggle',
-            value=False,
-            vertical=True
-
-        )
-
         self.current_layout = html.Div(children=[
-            html.Div([html.P('Heatmap'),
-                      html.Div(toggle, style={'padding': '20px'}),
-                      html.P('Choropleth')],
-                     style={'position': 'absolute', 'zIndex': 100, 'right': '100px', 'top': '30px',
-                            'background': 'white', 'textAlign': 'center'}),
-            html.Div(choropleth, style={'display': 'block', 'height': '80%'}, id='choropleth-div'),
-            html.Div(density, style={'visible': False}, id='density-div'),
+            html.Div(children=[
+                dcc.Tabs([
+                    dcc.Tab(label='Choropleth', children=[choropleth]),
+                    dcc.Tab(label='Density', children=[density])])
+            ], style={'height': '80%'}),
             graph
         ],
             className="main")
@@ -261,20 +251,6 @@ def display_click_data(click_data):
             'layout': {**graph_layout, 'title': {'text': point['hovertext'],
                                                  'y': 0.8, 'x': 0.1
                                                  }}}
-
-
-@app.callback(dash.dependencies.Output('density-div', 'style'),
-              [dash.dependencies.Input('toggle', 'value')])
-def update_figure_type(toggle_value):
-
-    return {"height": "80%", 'display': 'block' if toggle_value else 'none'}
-
-
-@app.callback(dash.dependencies.Output('choropleth-div', 'style'),
-              [dash.dependencies.Input('toggle', 'value')])
-def update_figure_type(toggle_value):
-
-    return {"height": "80%", 'display': 'none' if toggle_value else 'block'}
 
 
 if __name__ == '__main__':
