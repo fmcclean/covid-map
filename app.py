@@ -59,7 +59,7 @@ def update_data():
         df = df.append(indicators)
 
     scotland_html = download.scotland_html()
-    scotland = pd.read_html(scotland_html)[0].rename(
+    scotland = pd.read_html(scotland_html, header=0)[0].rename(
         columns={'Positive cases': 'cases'}
     )
     scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
