@@ -7,7 +7,7 @@ jobs:
     steps:
     - name: Build a docker image
       id: docker
-      uses: actions/covid-map@v1.0
+      uses: fmcclean/covid-map@v1.0
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
         DATABASE: ${{ secrets.DATABASE }}
