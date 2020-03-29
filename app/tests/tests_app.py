@@ -5,10 +5,10 @@ os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class TestApp(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         from app import app
         self.app = app
-        self.app.update_data()
 
     def test_create_choropleth(self):
         self.app.create_figure('choropleth')
