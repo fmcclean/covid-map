@@ -8,7 +8,6 @@ dependencies:
   - pip
   - pip:
       - dash==1.9.1
-      - dash_daq==0.4.0
       - gunicorn
       - xlrd
       - pymongo
