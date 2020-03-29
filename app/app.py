@@ -50,7 +50,7 @@ class App(dash.Dash):
             df = df.append(indicators)
 
         scotland_html = download.scotland_html()
-        scotland = pd.read_html(scotland_html)[0].rename(
+        scotland = pd.read_html(scotland_html, header=0)[0].rename(
             columns={'Positive cases': 'cases'}
         )
         scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
@@ -263,9 +263,15 @@ def display_click_data(click_data):
 
 
 @app.callback(dash.dependencies.Output('choropleth', 'figure'),
-              [dash.dependencies.Input('toggle', 'value')])
-def update_figure_type(toggle_value):
-    return app.density if toggle_value else app.choropleth
+              [dash.dependencies.Input('toggle', 'value')],
+              [dash.dependencies.State('choropleth', 'figure')])
+def update_figure_type(toggle_value, fig):
+    active = fig['layout']['sliders'][0]['active']
+    new_figure = app.density if toggle_value else app.choropleth
+    new_figure['layout']['sliders'][0]['active'] = active
+    new_figure.update_traces(fig['frames'][active]['data'][0])
+
+    return new_figure
 
 
 if __name__ == '__main__':
