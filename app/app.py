@@ -239,17 +239,21 @@ graph_layout = {
 
 @app.callback(
     dash.dependencies.Output('graph', 'figure'),
-    [dash.dependencies.Input('choropleth', 'clickData')])
-def display_click_data(click_data):
+    [dash.dependencies.Input('choropleth', 'clickData'),
+     dash.dependencies.Input('density', 'clickData')],
+    [dash.dependencies.State('tabs', 'value')]
+)
+def display_click_data(click_data, density_clickdata, tabs_value):
     if click_data is None:
         raise PreventUpdate
-    point = click_data['points'][0]
+    data = click_data if tabs_value == 'tab-1' else density_clickdata
+    point = data['points'][0]
     cases = app.data[app.data.code == point['id']]
     x = cases.date.values
-    if 'lat' in point.keys():
-        y = cases.cases.values
-    else:
+    if tabs_value == 'tab-1':
         y = cases.cases_by_pop.values
+    else:
+        y = cases.cases.values
     return {'data': [{'x': x, 'y': y}],
             'layout': {**graph_layout, 'title': {'text': point['hovertext'],
                                                  'y': 0.8, 'x': 0.1
