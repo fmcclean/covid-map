@@ -202,14 +202,11 @@ class App(dash.Dash):
             config={'displayModeBar': False})
 
         self.current_layout = html.Div(children=[
-            html.Div(children=[
-                dcc.Tabs([
-                    dcc.Tab(label='Choropleth', children=[choropleth]),
-                    dcc.Tab(label='Density', children=[density])],
-                    id='tabs',
-                    style={'height': '50px'}
-                )
-            ], style={'height': '80%'}),
+            dcc.Tabs([
+                dcc.Tab(label='Choropleth', children=[choropleth]),
+                dcc.Tab(label='Density', children=[density])],
+                id='tabs',
+                parent_style={'height': '80%'}),
             graph
         ],
             className="main")
