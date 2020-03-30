@@ -102,8 +102,8 @@ class App(dash.Dash):
                                     labels=labels,
                                     zoom=zoom,
                                     center=center,
-                                    range_color=(0, df.cases.max())
-                                    )
+                                    range_color=(0, df.cases.max()),
+                                    radius=40)
 
         else:
 
@@ -136,6 +136,7 @@ class App(dash.Dash):
         buttons.xanchor = 'left'
         buttons.yanchor = 'bottom'
         buttons.pad = {'r': 0, 't': 0, 'l': 50, 'b': 10}
+        buttons.buttons[0].args[1]["frame"]["duration"] = 1000
         fig.update_layout(
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             hoverlabel=dict(font=dict(size=20)),
