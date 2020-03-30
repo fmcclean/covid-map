@@ -131,9 +131,11 @@ class App(dash.Dash):
         slider['currentvalue'] = {'visible': False}
 
         buttons = fig.layout.updatemenus[0]
-        buttons.x = 0.2
-        buttons.y = 1
-
+        buttons.x = 0
+        buttons.y = 0
+        buttons.xanchor = 'left'
+        buttons.yanchor = 'bottom'
+        buttons.pad = {'r': 0, 't': 0, 'l': 50, 'b': 10}
         fig.update_layout(
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             hoverlabel=dict(font=dict(size=20)),
@@ -181,33 +183,32 @@ class App(dash.Dash):
 
         self.update_data()
 
+        class_name = 'map'
+
         choropleth = dcc.Graph(
             id='choropleth',
             figure=self.choropleth,
-            style={"height": "100%"},
-            config={'displayModeBar': False})
+            config={'displayModeBar': False},
+            className=class_name
+        )
 
         density = dcc.Graph(
             id='density',
             figure=self.density,
-            style={"height": "100%"},
-            config={'displayModeBar': False})
+            config={'displayModeBar': False},
+            className=class_name
+        )
 
         graph = dcc.Graph(
             id='graph',
             figure={'layout': graph_layout},
-            style={"height": "20%"},
             config={'displayModeBar': False})
 
         self.current_layout = html.Div(children=[
-            html.Div(children=[
-                dcc.Tabs([
-                    dcc.Tab(label='Choropleth', children=[choropleth]),
-                    dcc.Tab(label='Density', children=[density])],
-                    id='tabs',
-                    style={'height': '50px'}
-                )
-            ], style={'height': '80%'}),
+            dcc.Tabs([
+                dcc.Tab(label='Choropleth', children=[choropleth]),
+                dcc.Tab(label='Density', children=[density])],
+                id='tabs'),
             graph
         ],
             className="main")

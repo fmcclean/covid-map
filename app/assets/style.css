@@ -1,13 +1,25 @@
 .main {
-    /*height: 100vh; !* Fallback for browsers that do not support Custom Properties *!*/
+    height: calc(100vh - 20px); /* Fallback for browsers that do not support Custom Properties */
     height: calc(var(--vh, 1vh) * 100 - 20px);
 }
 
-#tabs-parent {
-    /*height: 100vh; !* Fallback for browsers that do not support Custom Properties *!*/
-    height: 100%;
+.tab-parent {
+    display: flex;
+    flex-direction: column;
+    height: 80%;
 }
 
 .tab-content {
-    height: calc(100% - 50px);
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.map {
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+#graph {
+    height: 20%;
 }
