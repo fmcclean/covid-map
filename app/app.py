@@ -183,30 +183,32 @@ class App(dash.Dash):
 
         self.update_data()
 
+        class_name = 'map'
+
         choropleth = dcc.Graph(
             id='choropleth',
             figure=self.choropleth,
-            style={"height": "100%"},
-            config={'displayModeBar': False})
+            config={'displayModeBar': False},
+            className=class_name
+        )
 
         density = dcc.Graph(
             id='density',
             figure=self.density,
-            style={"height": "100%"},
-            config={'displayModeBar': False})
+            config={'displayModeBar': False},
+            className=class_name
+        )
 
         graph = dcc.Graph(
             id='graph',
             figure={'layout': graph_layout},
-            style={"height": "20%"},
             config={'displayModeBar': False})
 
         self.current_layout = html.Div(children=[
             dcc.Tabs([
                 dcc.Tab(label='Choropleth', children=[choropleth]),
                 dcc.Tab(label='Density', children=[density])],
-                id='tabs',
-                parent_style={'height': '80%'}),
+                id='tabs'),
             graph
         ],
             className="main")
