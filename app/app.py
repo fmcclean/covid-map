@@ -246,7 +246,7 @@ graph_layout = {
     [dash.dependencies.State('tabs', 'value')]
 )
 def display_click_data(click_data, density_clickdata, tabs_value):
-    if click_data is None:
+    if click_data is None and density_clickdata is None:
         raise PreventUpdate
     data = click_data if tabs_value == 'tab-1' else density_clickdata
     point = data['points'][0]
