@@ -41,10 +41,10 @@ def document_to_dataframe(document):
 
 
 def get_all_documents():
-    docs = list(days.find({}, {'_id': 0}).sort('date'))
+    docs = [doc for _, doc in zip(range(10), days.find({}, {'_id': 0}).sort('date', direction=pymongo.DESCENDING))]
     for doc in docs:
         if 'S08000015' in doc['cases'].keys():
             del doc['cases']['S92000003']
-    docs = pd.concat([document_to_dataframe(doc) for doc in docs])
+    docs = pd.concat([document_to_dataframe(doc) for doc in docs[::-1]])
     docs['date'] = docs.date.apply(lambda x: datetime.fromtimestamp(x).strftime('%d/%m'))
     return docs

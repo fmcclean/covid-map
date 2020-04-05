@@ -21,6 +21,7 @@ class App(dash.Dash):
         self.data = pd.DataFrame()
         self.choropleth = None
         self.density = None
+        self.difference = None
         self.updated = datetime.now()
         self.not_updating = threading.Event()
         self.not_updating.set()
@@ -69,10 +70,15 @@ class App(dash.Dash):
 
         df['cases_by_pop'] = (df.cases / df.population * 10000).round(1)
 
+        df = pd.merge(df, centroids)
+
+        df['new_cases_by_pop'] = (df.groupby('code')['cases'].diff() / df.population * 10000).round(1)
+
         self.data = df
 
         self.choropleth = self.create_figure('choropleth')
         self.density = self.create_figure('density')
+        self.difference = self.create_figure('difference')
 
     def create_figure(self, mode='choropleth'):
 
@@ -89,9 +95,7 @@ class App(dash.Dash):
 
         if mode == 'density':
 
-            df = pd.merge(self.data, centroids)
-
-            fig = px.density_mapbox(df, lat='lat', lon='lon', z='cases',
+            fig = px.density_mapbox(self.data, lat='lat', lon='lon', z='cases',
                                     animation_frame=animation_frame,
                                     animation_group=animation_group,
                                     mapbox_style='carto-positron',
@@ -101,10 +105,10 @@ class App(dash.Dash):
                                     labels=labels,
                                     zoom=zoom,
                                     center=center,
-                                    range_color=(0, df.cases.max()),
+                                    range_color=(0, self.data.cases.max()),
                                     radius=40)
 
-        else:
+        elif mode == 'choropleth':
 
             fig = px.choropleth_mapbox(self.data, geojson=geojson,
                                        locations='code',
@@ -124,6 +128,29 @@ class App(dash.Dash):
 
             fig.update_traces(marker={'line': {'width': 0.5}})
 
+        elif mode == 'difference':
+
+            fig = px.choropleth_mapbox(self.data.dropna(), geojson=geojson,
+                                       locations='code',
+                                       color='new_cases_by_pop',
+                                       animation_frame=animation_frame,
+                                       animation_group=animation_group,
+                                       hover_name=hover_name,
+                                       hover_data=hover_data,
+                                       color_continuous_scale=color_continuous_scale,
+                                       featureidkey='properties.code',
+                                       mapbox_style="white-bg",
+                                       zoom=zoom,
+                                       center=center,
+                                       labels=labels,
+                                       range_color=(0, self.data.new_cases_by_pop.max())
+                                       )
+
+            fig.update_traces(marker={'line': {'width': 0.5}})
+
+        else:
+            raise Exception('mode "{}" is not supported'.format(mode))
+
         slider = fig['layout']['sliders'][0]
         slider['active'] = len(slider.steps) - 1
         slider['pad']['t'] = 0
@@ -139,7 +166,7 @@ class App(dash.Dash):
         fig.update_layout(
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             hoverlabel=dict(font=dict(size=20)),
-            coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>' if mode == 'choropleth' else ''},
+            coloraxis={'colorbar': {'title': {'text': '/10<sup>4</sup>' if mode != 'density' else ''},
                                     'tickangle': -90}},
             annotations=[
                 go.layout.Annotation(
@@ -153,7 +180,11 @@ class App(dash.Dash):
                 ),
 
                 go.layout.Annotation(
-                    text='<b>Cases per 10,000 People</b>' if mode == 'choropleth' else '<b>Number of Cases</b>',
+                    text='<b>{}</b>'.format({
+                        'choropleth': 'Cases per 10,000 People',
+                        'density': 'Number of Cases',
+                        'difference': 'New Cases per 10,000 People'
+                    }[mode]),
                     showarrow=False,
                     x=0.5,
                     y=0.9,
@@ -199,6 +230,13 @@ class App(dash.Dash):
             className=class_name
         )
 
+        difference = dcc.Graph(
+            id='difference',
+            figure=self.difference,
+            config={'displayModeBar': False},
+            className=class_name
+        )
+
         graph = dcc.Graph(
             id='graph',
             figure={'layout': graph_layout},
@@ -207,7 +245,8 @@ class App(dash.Dash):
         self.current_layout = html.Div(children=[
             dcc.Tabs([
                 dcc.Tab(label='Choropleth', children=[choropleth]),
-                dcc.Tab(label='Density', children=[density])],
+                dcc.Tab(label='Density', children=[density]),
+                dcc.Tab(label='Difference', children=[difference])],
                 id='tabs'),
             graph
         ],
@@ -241,20 +280,24 @@ graph_layout = {
 @app.callback(
     dash.dependencies.Output('graph', 'figure'),
     [dash.dependencies.Input('choropleth', 'clickData'),
-     dash.dependencies.Input('density', 'clickData')],
+     dash.dependencies.Input('density', 'clickData'),
+     dash.dependencies.Input('difference', 'clickData')],
     [dash.dependencies.State('tabs', 'value')]
 )
-def display_click_data(click_data, density_clickdata, tabs_value):
-    if click_data is None and density_clickdata is None:
+def display_click_data(click_data, density_clickdata, difference_clickdata, tabs_value):
+    if click_data is None and density_clickdata is None and difference_clickdata is None:
         raise PreventUpdate
-    data = click_data if tabs_value == 'tab-1' else density_clickdata
+    data = {'tab-1': click_data, 'tab-2': density_clickdata, 'tab-3': difference_clickdata}[tabs_value]
     point = data['points'][0]
     cases = app.data[app.data.code == point['id']]
     x = cases.date.values
     if tabs_value == 'tab-1':
         y = cases.cases_by_pop.values
-    else:
+    elif tabs_value == 'tab-2':
         y = cases.cases.values
+    else:
+        x = x[1:]
+        y = cases.new_cases_by_pop.values[1:]
     return {'data': [{'x': x, 'y': y}],
             'layout': {**graph_layout, 'title': {'text': point['hovertext'],
                                                  'y': 0.8, 'x': 0.1
