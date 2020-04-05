@@ -13,11 +13,6 @@ from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
 import threading
 
-try:
-    import chromedriver_binary
-except ImportError:
-    pass
-
 
 class App(dash.Dash):
     def __init__(self):
@@ -33,9 +28,13 @@ class App(dash.Dash):
         self.layout = self.update_layout
 
     def update_data(self):
-        df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/b684319181f94875a6879bbc833ca3a6/data',
-                         ).rename(columns={'GSS_CD': 'code', 'TotalCases': 'cases'}).drop(columns=['GSS_NM'])
-        date = pd.to_datetime(download.updated()[8:])
+        df = pd.read_excel('https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx',
+                           header=7,
+                           sheet_name='UTLAs',
+                           ).rename(columns={'Area Code': 'code'}).drop(columns=['Area Name'])
+        df = df.melt(id_vars=['code'], var_name='date', value_name='cases')
+        date = df.date.max()
+        df = df[df.date == date].drop('date', axis=1)
 
         indicators = pd.read_excel(
             'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')

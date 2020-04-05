@@ -1,11 +1,6 @@
 import urllib.request
 import json
 import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.common.by import By
 
 
 def boundaries():
@@ -83,25 +78,6 @@ def population():
     df.to_csv('population.csv', index=False)
 
     return df
-
-
-def updated():
-    url = 'https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6'
-    options = Options()
-    options.headless = True
-
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-gpu')
-    browser = webdriver.Chrome(
-        options=options)
-    browser.get(url)
-    elem = WebDriverWait(browser, 5).until(
-        expected_conditions.presence_of_element_located((By.ID, "dijit__TemplatedMixin_1")))
-    html = elem.get_attribute('outerHTML')
-    html = html[html.find('Updated:'):]
-    html = html[:html.find('<')]
-    browser.quit()
-    return html
 
 
 def scotland_html():
