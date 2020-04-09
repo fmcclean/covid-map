@@ -81,7 +81,7 @@ def population():
 
 
 def scotland_html():
-    with urllib.request.urlopen('https://www.gov.scot/coronavirus-covid-19/') as url:
+    with urllib.request.urlopen('https://www.gov.scot/publications/coronavirus-covid-19-tests-and-cases-in-scotland/') as url:
         return url.read().decode()
 
 

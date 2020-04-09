@@ -49,15 +49,15 @@ class App(dash.Dash):
             df = df.append(indicators)
 
         scotland_html = download.scotland_html()
-        scotland_date = scotland_html[scotland_html.find('Scottish test numbers:'):]
+        scotland_date = scotland_html[scotland_html.find('Scottish COVID-19 test numbers:'):]
         scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
 
         if scotland_date == date:
-            scotland = pd.read_html(scotland_html, header=0)[0].rename(columns={'Positive cases': 'cases'})
+            scotland = pd.read_html(scotland_html, header=0)[0].rename(columns={'Total confirmed cases to date': 'cases'})
             scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
             scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
-            scotland['cases'] = scotland.cases.astype(str).str.replace('*', '').astype(int)
-            df = df.append(scotland)
+            scotland['cases'] = scotland.cases.astype(str).str.replace('*', '5').astype(int)
+            df = df.append(scotland[['code', 'cases']])
 
         update_count = mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
 

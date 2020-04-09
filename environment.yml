@@ -2,11 +2,12 @@ channels:
   - conda-forge
 dependencies:
   - python==3.7
-  - pandas
-  - lxml
-  - pip
+  - pandas=0.25.1
+  - lxml=4.5.0
+  - pip=20.0.2
+  - html5lib=1.0.1
   - pip:
       - dash==1.9.1
-      - gunicorn
-      - xlrd
-      - pymongo
+      - gunicorn==20.0.4
+      - xlrd==1.2.0
+      - pymongo==3.10.1
