@@ -29,40 +29,47 @@ class App(dash.Dash):
         self.layout = self.update_layout
 
     def update_data(self):
-        df = pd.read_excel('https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx',
-                           header=7,
-                           sheet_name='UTLAs',
-                           ).rename(columns={'Area Code': 'code'}).drop(columns=['Area Name'])
-        df = df.melt(id_vars=['code'], var_name='date', value_name='cases')
-        date = df.date.max()
-        df = df[df.date == date].drop('date', axis=1)
+        try:
+            df = pd.read_excel('https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx',
+                               header=7,
+                               sheet_name='UTLAs',
+                               ).rename(columns={'Area Code': 'code'}).drop(columns=['Area Name'])
 
-        indicators = pd.read_excel(
-            'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
-        indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
-        indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
-            columns={'ScotlandCases': 'S92000003',
-                     'WalesCases': 'W92000004',
-                     'NICases': 'N92000002'}).transpose().reset_index().rename(
-            columns={'index': 'code', 0: 'cases'})
-        if indicators_date == date:
-            df = df.append(indicators)
+            if not (df.columns[1:].to_series().diff()[1:] == timedelta(days=1)).all():
+                raise Exception('There are duplicate columns')
+            df = df.melt(id_vars=['code'], var_name='date', value_name='cases')
+            date = df.date.max()
+            df = df[df.date == date].drop('date', axis=1)
 
-        scotland_html = download.scotland_html()
-        scotland_date = scotland_html[scotland_html.find('Scottish COVID-19 test numbers:'):]
-        scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
+            indicators = pd.read_excel(
+                'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
+            indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
+            indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
+                columns={'ScotlandCases': 'S92000003',
+                         'WalesCases': 'W92000004',
+                         'NICases': 'N92000002'}).transpose().reset_index().rename(
+                columns={'index': 'code', 0: 'cases'})
+            if indicators_date == date:
+                df = df.append(indicators)
 
-        if scotland_date == date:
-            scotland = pd.read_html(scotland_html, header=0)[0].rename(columns={'Total confirmed cases to date': 'cases'})
-            scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
-            scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
-            scotland['cases'] = scotland.cases.astype(str).str.replace('*', '5').astype(int)
-            df = df.append(scotland[['code', 'cases']])
+            scotland_html = download.scotland_html()
+            scotland_date = scotland_html[scotland_html.find('Scottish COVID-19 test numbers:'):]
+            scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
 
-        update_count = mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+            if scotland_date == date:
+                scotland = pd.read_html(scotland_html, header=0)[0].rename(columns={'Total confirmed cases to date': 'cases'})
+                scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
+                scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
+                scotland['cases'] = scotland.cases.astype(str).str.replace('*', '5').astype(int)
+                df = df.append(scotland[['code', 'cases']])
 
-        if update_count == 0 and len(self.data) > 0:
-            return
+            update_count = mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+
+            if update_count == 0 and len(self.data) > 0:
+                return
+
+        except Exception as e:
+            print(e)
 
         df = mongo.get_all_documents()
 
