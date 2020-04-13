@@ -1,13 +1,10 @@
 # Datasets
 
-## CountyUAs_cases_table
-https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6
+## Historic UK COVID-19 Dashboard Data (PHE)
+https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx
 
-## DailyIndicators
-https://www.arcgis.com/home/item.html?id=bc8ee90225644ef7a6f4dd1b13ea1d67
-
-## Coronavirus in Scotland
-https://www.gov.scot/coronavirus-covid-19/
+## 2020 coronavirus pandemic in Scotland
+https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland
 
 ## Counties and Unitary Authorities (April 2019) Boundaries EW BUC
 https://geoportal.statistics.gov.uk/datasets/counties-and-unitary-authorities-april-2019-boundaries-ew-buc

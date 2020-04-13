@@ -8,7 +8,6 @@ import json
 import pandas as pd
 from plotly import graph_objs as go
 import download
-import mongo
 from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
 import threading
@@ -28,52 +27,70 @@ class App(dash.Dash):
         self.current_layout = None
         self.layout = self.update_layout
 
+
     def update_data(self):
-        try:
-            df = pd.read_excel('https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx',
-                               header=7,
-                               sheet_name='UTLAs',
-                               ).rename(columns={'Area Code': 'code'}).drop(columns=['Area Name'])
+        uk = pd.ExcelFile('https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx')
+        df = pd.read_excel(uk,
+                           header=7,
+                           sheet_name='UTLAs',
+                           ).rename(columns={'Area Code': 'code'}).drop(columns=['Area Name'])
 
-            if not (df.columns[1:].to_series().diff()[1:] == timedelta(days=1)).all():
-                raise Exception('There are duplicate columns')
-            df = df.melt(id_vars=['code'], var_name='date', value_name='cases')
-            date = df.date.max()
-            df = df[df.date == date].drop('date', axis=1)
+        if not (df.columns[1:].to_series().diff()[1:] == timedelta(days=1)).all():
+            raise Exception('There are duplicate columns')
 
-            indicators = pd.read_excel(
-                'https://www.arcgis.com/sharing/rest/content/items/bc8ee90225644ef7a6f4dd1b13ea1d67/data')
-            indicators_date = pd.to_datetime(indicators['DateVal'].values[0])
-            indicators = indicators[['ScotlandCases', 'WalesCases', 'NICases']].rename(
-                columns={'ScotlandCases': 'S92000003',
-                         'WalesCases': 'W92000004',
-                         'NICases': 'N92000002'}).transpose().reset_index().rename(
-                columns={'index': 'code', 0: 'cases'})
-            if indicators_date == date:
-                df = df.append(indicators)
+        df = df.melt(id_vars=['code'], var_name='date', value_name='cases')
 
-            scotland_html = download.scotland_html()
-            scotland_date = scotland_html[scotland_html.find('Scottish COVID-19 test numbers:'):]
-            scotland_date = pd.to_datetime(scotland_date[:scotland_date.find('</h3>')].split(':')[1])
+        countries = pd.read_excel(uk, header=9, sheet_name='Countries').rename(
+            columns={'Area Code': 'code'}).drop(columns=['Area Name'])
 
-            if scotland_date == date:
-                scotland = pd.read_html(scotland_html, header=0)[0].rename(columns={'Total confirmed cases to date': 'cases'})
-                scotland['Health board'] = scotland['Health board'].str.replace(u'\xa0', u' ')
-                scotland = scotland.replace(download.scotland_codes).rename(columns={'Health board': 'code'})
-                scotland['cases'] = scotland.cases.astype(str).str.replace('*', '5').astype(int)
-                df = df.append(scotland[['code', 'cases']])
+        countries = countries.melt(id_vars=['code'], var_name='date', value_name='cases')
 
-            update_count = mongo.insert(df.set_index('code').cases.to_dict(), date.timestamp())
+        df = df.append(countries)
 
-            if update_count == 0 and len(self.data) > 0:
-                return
+        scotland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
+                                header=1,
+                                match='A&A',
+                                index_col='Date')[0].iloc[:-3, :14].dropna()
 
-        except Exception as e:
-            print(e)
+        scotland = scotland.rename(columns={
+            'A&A': 'S08000015',
+            'BOR': 'S08000016',
+            'D&G': 'S08000017',
+            'FIF': 'S08000029',
+            'FV': 'S08000019',
+            'GRA': 'S08000020',
+            'GGC': 'S08000031',
+            'HLD': 'S08000022',
+            'LAN': 'S08000032',
+            'LOT': 'S08000024',
+            'ORK': 'S08000025',
+            'SHE': 'S08000026',
+            'TAY': 'S08000030',
+            'WES': 'S08000028'}).transpose().reset_index().rename(columns={'index': 'code', 'Date': 'date'})
 
-        df = mongo.get_all_documents()
+        scotland = scotland.melt(id_vars=['code'], var_name='date', value_name='cases')
+
+        scotland['date'] = pd.to_datetime(scotland.date)
+        scotland['cases'] = scotland['cases'].astype(str).str.extract(r'([\d.]+)').astype(float)
+
+        scotland = scotland.sort_values('date')
+
+        scotland['cases'] = scotland.groupby('code')['cases'].cumsum()
+
+        df = df.append(scotland)
+
+        df = df.sort_values('date')
+
+        df = df[
+            (df.date >= datetime(2020, 4, 1)) &
+            (df.date < df[df.code == 'E06000001'].date.max()) &
+            (df.code != 'S92000003')]
 
         df = pd.merge(df, population)
+
+        df['date_string'] = df.date.dt.strftime('%d/%m')
+
+        df['date'] = df.date.apply(lambda d: d.isoformat())
 
         df['cases_by_pop'] = (df.cases / df.population * 10000).round(1)
 
@@ -89,7 +106,7 @@ class App(dash.Dash):
 
     def create_figure(self, mode='choropleth'):
 
-        animation_frame = 'date'
+        animation_frame = 'date_string'
         animation_group = 'code'
         hover_name = 'name'
         hover_data = ['cases', 'population']
