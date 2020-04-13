@@ -71,7 +71,7 @@ class App(dash.Dash):
         scotland = scotland.melt(id_vars=['code'], var_name='date', value_name='cases')
 
         scotland['date'] = pd.to_datetime(scotland.date)
-        scotland['cases'] = scotland['cases'].astype(float)
+        scotland['cases'] = scotland['cases'].astype(str).str.extract(r'([\d.]+)').astype(float)
 
         scotland = scotland.sort_values('date')
 
