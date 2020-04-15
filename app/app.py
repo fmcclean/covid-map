@@ -2,7 +2,6 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import os
 import plotly.express as px
 import json
 import pandas as pd
@@ -11,6 +10,25 @@ import download
 from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
 import threading
+import asyncio
+from pyppeteer import launch
+import os
+
+
+async def download_uk_data():
+    browser = await launch({'headless': True})
+    page = await browser.newPage()
+
+    cdp = await page.target.createCDPSession()
+    await cdp.send(
+        "Page.setDownloadBehavior",
+        {"behavior": "allow", "downloadPath": os.getcwd()},
+    )
+
+    await page.goto('https://coronavirus.data.gov.uk/#')
+    await page.waitForSelector('#root > div.sc-fznxsB.cUWXFh.govuk-width-container > div:nth-child(8) > p > a')
+    await page.click('#root > div.sc-fznxsB.cUWXFh.govuk-width-container > div:nth-child(8) > p > a')
+    await browser.close()
 
 
 class App(dash.Dash):
@@ -27,25 +45,17 @@ class App(dash.Dash):
         self.current_layout = None
         self.layout = self.update_layout
 
-
     def update_data(self):
-        uk = pd.ExcelFile('https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx')
-        df = pd.read_excel(uk,
-                           header=7,
-                           sheet_name='UTLAs',
-                           ).rename(columns={'Area Code': 'code'}).drop(columns=['Area Name'])
 
-        if not (df.columns[1:].to_series().diff()[1:] == timedelta(days=1)).all():
-            raise Exception('There are duplicate columns')
+        asyncio.get_event_loop().run_until_complete(download_uk_data())
 
-        df = df.melt(id_vars=['code'], var_name='date', value_name='cases')
-
-        countries = pd.read_excel(uk, header=9, sheet_name='Countries').rename(
-            columns={'Area Code': 'code'}).drop(columns=['Area Name'])
-
-        countries = countries.melt(id_vars=['code'], var_name='date', value_name='cases')
-
-        df = df.append(countries)
+        df = pd.read_csv('coronavirus-cases.csv', header=0,
+                         parse_dates=['Specimen date']).rename(
+            columns={
+                'Area code': 'code',
+                'Cumulative lab-confirmed cases': 'cases',
+                'Specimen date': 'date'
+            })[['code', 'cases', 'date']].sort_values('date')
 
         scotland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
                                 header=1,
