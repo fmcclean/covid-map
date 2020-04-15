@@ -16,7 +16,7 @@ import os
 
 
 async def download_uk_data():
-    browser = await launch({'headless': True})
+    browser = await launch({'headless': True, 'args': '--no-sandbox'})
     page = await browser.newPage()
 
     cdp = await page.target.createCDPSession()
