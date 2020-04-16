@@ -22,7 +22,7 @@ async def download_uk_data():
     cdp = await page.target.createCDPSession()
     await cdp.send(
         "Page.setDownloadBehavior",
-        {"behavior": "allow", "downloadPath": os.getcwd()},
+        {"behavior": "allow", "downloadPath": os.path.abspath(os.path.dirname(__file__))},
     )
     xpath = "//a[contains(text(), 'Download cases data as CSV')]"
     await page.goto('https://coronavirus.data.gov.uk/#')
