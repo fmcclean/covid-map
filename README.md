@@ -1,7 +1,7 @@
 # Datasets
 
-## Historic UK COVID-19 Dashboard Data (PHE)
-https://fingertips.phe.org.uk/documents/Historic%20COVID-19%20Dashboard%20Data.xlsx
+## Coronavirus (COVID-19) in the UK
+https://coronavirus.data.gov.uk
 
 ## 2020 coronavirus pandemic in Scotland
 https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland

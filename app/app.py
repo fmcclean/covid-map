@@ -24,10 +24,12 @@ async def download_uk_data():
         "Page.setDownloadBehavior",
         {"behavior": "allow", "downloadPath": os.getcwd()},
     )
-
+    xpath = "//a[contains(text(), 'Download cases data as CSV')]"
     await page.goto('https://coronavirus.data.gov.uk/#')
-    await page.waitForSelector('#root > div.sc-fznxsB.cUWXFh.govuk-width-container > div:nth-child(8) > p > a')
-    await page.click('#root > div.sc-fznxsB.cUWXFh.govuk-width-container > div:nth-child(8) > p > a')
+    await page.waitForXPath(xpath)
+    elements = await page.xpath(xpath)
+    await elements[0].click()
+    await page.waitFor(500)
     await browser.close()
 
 
