@@ -57,7 +57,7 @@ class App(dash.Dash):
                 'Area code': 'code',
                 'Cumulative lab-confirmed cases': 'cases',
                 'Specimen date': 'date'
-            })[['code', 'cases', 'date']].sort_values('date')
+            })[['code', 'date', 'cases']]
 
         scotland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
                                 header=1,
