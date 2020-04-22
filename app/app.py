@@ -51,7 +51,7 @@ class App(dash.Dash):
 
         asyncio.get_event_loop().run_until_complete(download_uk_data())
 
-        df = pd.read_csv('coronavirus-cases.csv', header=0,
+        df = pd.read_csv('coronavirus-cases_latest.csv', header=0,
                          parse_dates=['Specimen date']).rename(
             columns={
                 'Area code': 'code',
@@ -78,7 +78,10 @@ class App(dash.Dash):
             'ORK': 'S08000025',
             'SHE': 'S08000026',
             'TAY': 'S08000030',
-            'WES': 'S08000028'}).transpose().reset_index().rename(columns={'index': 'code', 'Date': 'date'})
+            'WES': 'S08000028'})
+
+        scotland = scotland[scotland.index != 'Date']
+        scotland = scotland.transpose().reset_index().rename(columns={'index': 'code', 'Date': 'date'})
 
         scotland = scotland.melt(id_vars=['code'], var_name='date', value_name='cases')
 
