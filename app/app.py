@@ -10,27 +10,9 @@ import download
 from datetime import datetime, timedelta
 from dash.exceptions import PreventUpdate
 import threading
-import asyncio
-from pyppeteer import launch
 import os
-
-
-async def download_uk_data():
-    browser = await launch({'headless': True, 'args': ['--no-sandbox']})
-    page = await browser.newPage()
-
-    cdp = await page.target.createCDPSession()
-    await cdp.send(
-        "Page.setDownloadBehavior",
-        {"behavior": "allow", "downloadPath": os.path.abspath(os.path.dirname(__file__))},
-    )
-    xpath = "//a[contains(text(), 'Download cases data as CSV')]"
-    await page.goto('https://coronavirus.data.gov.uk/#')
-    await page.waitForXPath(xpath)
-    elements = await page.xpath(xpath)
-    await elements[0].click()
-    await page.waitFor(500)
-    await browser.close()
+import requests
+import io
 
 
 class App(dash.Dash):
@@ -48,10 +30,11 @@ class App(dash.Dash):
         self.layout = self.update_layout
 
     def update_data(self):
+        text = requests.get('https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv',
+                            allow_redirects=True).text
+        data_file = io.StringIO(text)
 
-        asyncio.get_event_loop().run_until_complete(download_uk_data())
-
-        df = pd.read_csv('coronavirus-cases_latest.csv', header=0,
+        df = pd.read_csv(data_file, header=0,
                          parse_dates=['Specimen date']).rename(
             columns={
                 'Area code': 'code',
