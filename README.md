@@ -9,6 +9,9 @@ https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland
 ## 2020 coronavirus pandemic in Northern Ireland
 https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland
 
+## Public Health Wales Rapid COVID-19 Surveillance
+https://public.tableau.com/profile/public.health.wales.health.protection#!/vizhome/RapidCOVID-19virology-Public/Headlinesummary
+
 ## Counties and Unitary Authorities (April 2019) Boundaries EW BUC
 https://geoportal.statistics.gov.uk/datasets/counties-and-unitary-authorities-april-2019-boundaries-ew-buc
 

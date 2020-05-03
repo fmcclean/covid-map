@@ -13,6 +13,7 @@ import threading
 import os
 import requests
 import io
+import warnings
 
 
 class App(dash.Dash):
@@ -30,65 +31,91 @@ class App(dash.Dash):
         self.layout = self.update_layout
 
     def update_data(self):
-        text = requests.get('https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv',
-                            allow_redirects=True).text
-        data_file = io.StringIO(text)
 
-        df = pd.read_csv(data_file, header=0,
-                         parse_dates=['Specimen date']).rename(
-            columns={
-                'Area code': 'code',
-                'Cumulative lab-confirmed cases': 'cases',
-                'Specimen date': 'date'
-            })[['code', 'date', 'cases']]
+        df = pd.DataFrame()
+        try:
+            text = requests.get('https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv',
+                                allow_redirects=True).text
+            data_file = io.StringIO(text)
 
-        scotland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
-                                header=1,
-                                match='A&A',
-                                index_col='Date')[0].iloc[:-3, :14].dropna()
+            england = pd.read_csv(data_file, header=0,
+                             parse_dates=['Specimen date']).rename(
+                columns={
+                    'Area code': 'code',
+                    'Cumulative lab-confirmed cases': 'cases',
+                    'Specimen date': 'date'
+                })[['code', 'date', 'cases']]
 
-        scotland = scotland.rename(columns={
-            'A&A': 'S08000015',
-            'BOR': 'S08000016',
-            'D&G': 'S08000017',
-            'FIF': 'S08000029',
-            'FV': 'S08000019',
-            'GRA': 'S08000020',
-            'GGC': 'S08000031',
-            'HLD': 'S08000022',
-            'LAN': 'S08000032',
-            'LOT': 'S08000024',
-            'ORK': 'S08000025',
-            'SHE': 'S08000026',
-            'TAY': 'S08000030',
-            'WES': 'S08000028'})
+            df = df.append(england)
+        except:
+            warnings.warn('Failed to get data for England')
 
-        scotland = scotland[scotland.index != 'Date']
-        scotland = scotland.transpose().reset_index().rename(columns={'index': 'code', 'Date': 'date'})
+        try:
 
-        scotland = scotland.melt(id_vars=['code'], var_name='date', value_name='cases')
+            scotland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
+                                    header=1,
+                                    match='A&A',
+                                    index_col='Date')[0].iloc[:-3, :14].dropna()
 
-        scotland['date'] = pd.to_datetime(scotland.date)
-        scotland['cases'] = scotland['cases'].astype(str).str.extract(r'([\d.]+)').astype(float)
+            scotland = scotland.rename(columns={
+                'A&A': 'S08000015',
+                'BOR': 'S08000016',
+                'D&G': 'S08000017',
+                'FIF': 'S08000029',
+                'FV': 'S08000019',
+                'GRA': 'S08000020',
+                'GGC': 'S08000031',
+                'HLD': 'S08000022',
+                'LAN': 'S08000032',
+                'LOT': 'S08000024',
+                'ORK': 'S08000025',
+                'SHE': 'S08000026',
+                'TAY': 'S08000030',
+                'WES': 'S08000028'})
 
-        scotland = scotland.sort_values('date')
+            scotland = scotland[scotland.index != 'Date']
+            scotland = scotland.transpose().reset_index().rename(columns={'index': 'code', 'Date': 'date'})
 
-        scotland['cases'] = scotland.groupby('code')['cases'].cumsum()
+            scotland = scotland.melt(id_vars=['code'], var_name='date', value_name='cases')
 
-        df = df.append(scotland)
+            scotland['date'] = pd.to_datetime(scotland.date)
+            scotland['cases'] = scotland['cases'].astype(str).str.extract(r'([\d.]+)').astype(float)
 
-        northern_ireland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland',
-                                        header=0,
-                                        match='Reference',
-                                        )[0].iloc[:-1]
+            scotland = scotland.sort_values('date')
 
-        northern_ireland = pd.DataFrame({
-            'code': 'N92000002',
-            'date': pd.to_datetime(northern_ireland.Date),
-            'cases': northern_ireland.Cases.astype(float).cumsum()
-        }).dropna()
+            scotland['cases'] = scotland.groupby('code')['cases'].cumsum()
 
-        df = df.append(northern_ireland)
+            df = df.append(scotland)
+        except:
+            warnings.warn('Failed to get data for Scotland')
+
+        try:
+
+            northern_ireland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland',
+                                            header=0,
+                                            match='Reference',
+                                            )[0].iloc[:-1]
+
+            northern_ireland = pd.DataFrame({
+                'code': 'N92000002',
+                'date': pd.to_datetime(northern_ireland.Date),
+                'cases': northern_ireland.Cases.astype(float).cumsum()
+            }).dropna()
+
+            df = df.append(northern_ireland)
+
+            wales = pd.read_excel('http://www2.nphs.wales.nhs.uk:8080/CommunitySurveillanceDocs.nsf/61c1e930f9121fd080256f2a004937ed/77fdb9a33544aee88025855100300cab/$FILE/Rapid%20COVID-19%20surveillance%20data.xlsx',
+                                  sheet_name=1)
+
+            wales = pd.DataFrame({'name': wales['Local Authority'],
+                                  'date': wales['Specimen date'],
+                                  'cases': wales['Cumulative cases']}).set_index('name').join(
+                population.set_index('name'))[['code', 'date', 'cases']].reset_index(drop=True)
+
+            df = df.append(wales)
+
+        except:
+            warnings.warn('Failed to get data for Northern Ireland')
 
         df = df.sort_values('date')
 
