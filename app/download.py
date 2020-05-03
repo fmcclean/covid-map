@@ -16,7 +16,7 @@ def boundaries():
         scotland = json.load(f)
 
     geojson['features'] = [feature for feature in geojson['features']
-                           if feature['properties']['ctyua19cd'].startswith('E')]
+                           if feature['properties']['ctyua19cd'][0] in ('E', 'W')]
 
     countries['features'] = [feature for feature in countries['features']
                              if not feature['properties']['ctry18cd'][0].startswith('E')]

@@ -10,3 +10,4 @@ dependencies:
   - pip:
       - dash==1.9.1
       - gunicorn==20.0.4
+      - xlrd==1.2.0
