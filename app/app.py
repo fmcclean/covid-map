@@ -77,6 +77,19 @@ class App(dash.Dash):
 
         df = df.append(scotland)
 
+        northern_ireland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland',
+                                        header=0,
+                                        match='Reference',
+                                        )[0].iloc[:-1]
+
+        northern_ireland = pd.DataFrame({
+            'code': 'N92000002',
+            'date': pd.to_datetime(northern_ireland.Date),
+            'cases': northern_ireland.Cases.astype(float).cumsum()
+        }).dropna()
+
+        df = df.append(northern_ireland)
+
         df = df.sort_values('date')
 
         df = df[

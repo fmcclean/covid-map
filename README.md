@@ -6,6 +6,9 @@ https://coronavirus.data.gov.uk
 ## 2020 coronavirus pandemic in Scotland
 https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland
 
+## 2020 coronavirus pandemic in Northern Ireland
+https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland
+
 ## Counties and Unitary Authorities (April 2019) Boundaries EW BUC
 https://geoportal.statistics.gov.uk/datasets/counties-and-unitary-authorities-april-2019-boundaries-ew-buc
 
