@@ -80,7 +80,6 @@ class App(dash.Dash):
         df = df.sort_values('date')
 
         df = df[
-            (df.date >= datetime(2020, 4, 1)) &
             (df.date < df[df.code == 'E06000001'].date.max()) &
             (df.code != 'S92000003')]
 
@@ -115,9 +114,11 @@ class App(dash.Dash):
                   'population': 'Total Population',
                   'cases_by_pop': 'Cases per 10,000 people'},
 
+        df = self.data[self.data.date >= sorted(self.data.date.unique())[-10]]
+
         if mode == 'density':
 
-            fig = px.density_mapbox(self.data, lat='lat', lon='lon', z='cases',
+            fig = px.density_mapbox(df, lat='lat', lon='lon', z='cases',
                                     animation_frame=animation_frame,
                                     animation_group=animation_group,
                                     mapbox_style='carto-positron',
@@ -127,12 +128,12 @@ class App(dash.Dash):
                                     labels=labels,
                                     zoom=zoom,
                                     center=center,
-                                    range_color=(0, self.data.cases.max()),
+                                    range_color=(0, df.cases.max()),
                                     radius=40)
 
         elif mode == 'choropleth':
 
-            fig = px.choropleth_mapbox(self.data, geojson=geojson,
+            fig = px.choropleth_mapbox(df, geojson=geojson,
                                        locations='code',
                                        color='cases_by_pop',
                                        animation_frame=animation_frame,
@@ -152,7 +153,7 @@ class App(dash.Dash):
 
         elif mode == 'difference':
 
-            fig = px.choropleth_mapbox(self.data.dropna(), geojson=geojson,
+            fig = px.choropleth_mapbox(df.dropna(), geojson=geojson,
                                        locations='code',
                                        color='new_cases_by_pop',
                                        animation_frame=animation_frame,
