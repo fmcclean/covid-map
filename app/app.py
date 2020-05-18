@@ -44,7 +44,9 @@ class App(dash.Dash):
                     'Area code': 'code',
                     'Cumulative lab-confirmed cases': 'cases',
                     'Specimen date': 'date'
-                })[['code', 'date', 'cases']]
+                })
+            england = england[england['Area type'] == 'Upper tier local authority']
+            england = england[['code', 'date', 'cases']]
 
             df = df.append(england)
         except:
@@ -52,11 +54,13 @@ class App(dash.Dash):
 
         try:
 
-            scotland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
-                                    header=1,
-                                    match='A&A',
-                                    index_col='Date')[0].iloc[:-3, :14].dropna()
-
+            scotland_tables = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
+                                            header=1,
+                                            match='A&A',
+                                            index_col='Date')
+            
+            scotland = pd.concat([scotland_table.iloc[:, :14] for scotland_table in scotland_tables])
+    
             scotland = scotland.rename(columns={
                 'A&A': 'S08000015',
                 'BOR': 'S08000016',
@@ -73,7 +77,7 @@ class App(dash.Dash):
                 'TAY': 'S08000030',
                 'WES': 'S08000028'})
 
-            scotland = scotland[scotland.index != 'Date']
+            scotland = scotland[(scotland.index != 'Date') & (scotland.index != 'Total')]
             scotland = scotland.transpose().reset_index().rename(columns={'index': 'code', 'Date': 'date'})
 
             scotland = scotland.melt(id_vars=['code'], var_name='date', value_name='cases')
@@ -84,7 +88,7 @@ class App(dash.Dash):
             scotland = scotland.sort_values('date')
 
             scotland['cases'] = scotland.groupby('code')['cases'].cumsum()
-
+                
             df = df.append(scotland)
         except:
             warnings.warn('Failed to get data for Scotland')
