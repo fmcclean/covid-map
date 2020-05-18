@@ -44,7 +44,9 @@ class App(dash.Dash):
                     'Area code': 'code',
                     'Cumulative lab-confirmed cases': 'cases',
                     'Specimen date': 'date'
-                })[['code', 'date', 'cases']]
+                })
+            england = england[england['Area type'] == 'Upper tier local authority']
+            england = england[['code', 'date', 'cases']]
 
             df = df.append(england)
         except:
