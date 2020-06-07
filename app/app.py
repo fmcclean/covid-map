@@ -46,7 +46,10 @@ class App(dash.Dash):
                     'Specimen date': 'date'
                 })
             england = england[england['Area type'] == 'Upper tier local authority']
-            england = england[['code', 'date', 'cases']]
+            england = england[['code', 'date', 'cases']].pivot(index='date', values='cases', columns='code')
+            england = england.reset_index().melt(id_vars=['date'], value_name='cases')[['code', 'date', 'cases']]
+
+            england['cases'] = england.groupby('code').fillna(method='ffill').cases
 
             df = df.append(england)
         except:
