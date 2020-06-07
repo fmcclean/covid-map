@@ -46,7 +46,10 @@ class App(dash.Dash):
                     'Specimen date': 'date'
                 })
             england = england[england['Area type'] == 'Upper tier local authority']
-            england = england[['code', 'date', 'cases']]
+            england = england[['code', 'date', 'cases']].pivot(index='date', values='cases', columns='code')
+            england = england.reset_index().melt(id_vars=['date'], value_name='cases')[['code', 'date', 'cases']]
+
+            england['cases'] = england.groupby('code').fillna(method='ffill').cases
 
             df = df.append(england)
         except:
@@ -54,7 +57,7 @@ class App(dash.Dash):
 
         try:
 
-            scotland_tables = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Scotland',
+            scotland_tables = pd.read_html('https://en.wikipedia.org/wiki/Template:COVID-19_pandemic_data/United_Kingdom/Scotland_medical_cases',
                                             header=1,
                                             match='A&A',
                                             index_col='Date')
@@ -97,8 +100,8 @@ class App(dash.Dash):
 
             northern_ireland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland',
                                             header=0,
-                                            match='Reference',
-                                            )[0].iloc[:-1]
+                                            match='Cases',
+                                            )[1].iloc[:-1]
 
             northern_ireland = pd.DataFrame({
                 'code': 'N92000002',
@@ -107,9 +110,13 @@ class App(dash.Dash):
             }).dropna()
 
             df = df.append(northern_ireland)
+        except:
+            warnings.warn('Failed to get data for Northern Ireland')
+
+        try:
 
             wales = pd.read_excel('http://www2.nphs.wales.nhs.uk:8080/CommunitySurveillanceDocs.nsf/61c1e930f9121fd080256f2a004937ed/77fdb9a33544aee88025855100300cab/$FILE/Rapid%20COVID-19%20surveillance%20data.xlsx',
-                                  sheet_name=1)
+                                  sheet_name=2)
 
             wales = pd.DataFrame({'name': wales['Local Authority'],
                                   'date': wales['Specimen date'],
@@ -119,7 +126,7 @@ class App(dash.Dash):
             df = df.append(wales)
 
         except:
-            warnings.warn('Failed to get data for Northern Ireland')
+            warnings.warn('Failed to get data for Wales')
 
         df = df.sort_values('date')
 
