@@ -96,14 +96,14 @@ class App(dash.Dash):
         try:
 
             northern_ireland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland',
-                                            header=0,
+                                            header=1,
                                             match='Cases',
                                             )[1].iloc[:-1]
 
             northern_ireland = pd.DataFrame({
                 'code': 'N92000002',
-                'date': pd.to_datetime(northern_ireland.Date),
-                'cases': northern_ireland.Cases.astype(float).cumsum()
+                'date': pd.to_datetime(northern_ireland.Date.apply(lambda x: x.split('-')[-1])),
+                'cases': northern_ireland['Cases Reported'].astype(float).cumsum()
             }).dropna()
 
             df = df.append(northern_ireland)
