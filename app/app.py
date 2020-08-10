@@ -33,27 +33,24 @@ class App(dash.Dash):
     def update_data(self):
 
         df = pd.DataFrame()
-        try:
-            text = requests.get('https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv',
-                                allow_redirects=True).text
-            data_file = io.StringIO(text)
+        text = requests.get('https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv',
+                            allow_redirects=True).text
+        data_file = io.StringIO(text)
 
-            england = pd.read_csv(data_file, header=0,
-                             parse_dates=['Specimen date']).rename(
-                columns={
-                    'Area code': 'code',
-                    'Cumulative lab-confirmed cases': 'cases',
-                    'Specimen date': 'date'
-                })
-            england = england[england['Area type'] == 'Upper tier local authority']
-            england = england[['code', 'date', 'cases']].pivot(index='date', values='cases', columns='code')
-            england = england.reset_index().melt(id_vars=['date'], value_name='cases')[['code', 'date', 'cases']]
+        england = pd.read_csv(data_file, header=0,
+                         parse_dates=['Specimen date']).rename(
+            columns={
+                'Area code': 'code',
+                'Cumulative lab-confirmed cases': 'cases',
+                'Specimen date': 'date'
+            })
+        england = england[england['Area type'] == 'utla']
+        england = england[['code', 'date', 'cases']].pivot(index='date', values='cases', columns='code')
+        england = england.reset_index().melt(id_vars=['date'], value_name='cases')[['code', 'date', 'cases']]
 
-            england['cases'] = england.groupby('code').fillna(method='ffill').cases
+        england['cases'] = england.groupby('code').fillna(method='ffill').cases
 
-            df = df.append(england)
-        except:
-            warnings.warn('Failed to get data for England')
+        df = df.append(england)
 
         try:
 
