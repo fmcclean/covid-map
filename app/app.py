@@ -33,27 +33,24 @@ class App(dash.Dash):
     def update_data(self):
 
         df = pd.DataFrame()
-        try:
-            text = requests.get('https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv',
-                                allow_redirects=True).text
-            data_file = io.StringIO(text)
+        text = requests.get('https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv',
+                            allow_redirects=True).text
+        data_file = io.StringIO(text)
 
-            england = pd.read_csv(data_file, header=0,
-                             parse_dates=['Specimen date']).rename(
-                columns={
-                    'Area code': 'code',
-                    'Cumulative lab-confirmed cases': 'cases',
-                    'Specimen date': 'date'
-                })
-            england = england[england['Area type'] == 'Upper tier local authority']
-            england = england[['code', 'date', 'cases']].pivot(index='date', values='cases', columns='code')
-            england = england.reset_index().melt(id_vars=['date'], value_name='cases')[['code', 'date', 'cases']]
+        england = pd.read_csv(data_file, header=0,
+                         parse_dates=['Specimen date']).rename(
+            columns={
+                'Area code': 'code',
+                'Cumulative lab-confirmed cases': 'cases',
+                'Specimen date': 'date'
+            })
+        england = england[england['Area type'] == 'utla']
+        england = england[['code', 'date', 'cases']].pivot(index='date', values='cases', columns='code')
+        england = england.reset_index().melt(id_vars=['date'], value_name='cases')[['code', 'date', 'cases']]
 
-            england['cases'] = england.groupby('code').fillna(method='ffill').cases
+        england['cases'] = england.groupby('code').fillna(method='ffill').cases
 
-            df = df.append(england)
-        except:
-            warnings.warn('Failed to get data for England')
+        df = df.append(england)
 
         try:
 
@@ -99,14 +96,14 @@ class App(dash.Dash):
         try:
 
             northern_ireland = pd.read_html('https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Northern_Ireland',
-                                            header=0,
+                                            header=1,
                                             match='Cases',
                                             )[1].iloc[:-1]
 
             northern_ireland = pd.DataFrame({
                 'code': 'N92000002',
-                'date': pd.to_datetime(northern_ireland.Date),
-                'cases': northern_ireland.Cases.astype(float).cumsum()
+                'date': pd.to_datetime(northern_ireland.Date.apply(lambda x: x.split('-')[-1])),
+                'cases': northern_ireland['Cases Reported'].astype(float).cumsum()
             }).dropna()
 
             df = df.append(northern_ireland)
