@@ -30,7 +30,6 @@ class App(dash.Dash):
 
         df = []
         for area_type in ['utla', 'nation']:
-            print(area_type)
             new_cases = "newCasesByPublishDate"
             df.extend(Cov19API(filters=[f'areaType={area_type}'], structure={
                 "date": "date",
