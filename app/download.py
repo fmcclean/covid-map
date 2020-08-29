@@ -5,33 +5,23 @@ import pandas as pd
 
 def boundaries():
     with urllib.request.urlopen(
-            "https://opendata.arcgis.com/datasets/d5dfaace0bbd4dea9255020b3c53284f_0.geojson") as url:
+            "https://opendata.arcgis.com/datasets/4c7e4b5f1b4d49988967f151a8fe4477_0.geojson") as url:
         geojson = json.loads(url.read().decode())
 
     with urllib.request.urlopen(
             "https://opendata.arcgis.com/datasets/629c303e07ee4ad09a4dfd0bfea499ec_0.geojson") as url:
         countries = json.loads(url.read().decode())
 
-    with open('data/scotland.geojson') as f:
-        scotland = json.load(f)
-
-    geojson['features'] = [feature for feature in geojson['features']
-                           if feature['properties']['ctyua19cd'][0] in ('E', 'W')]
-
     countries['features'] = [feature for feature in countries['features']
-                             if not feature['properties']['ctry18cd'][0].startswith('E')]
+                             if not feature['properties']['ctry18cd'][0][0] in ['E', 'W']]
 
     for feature in geojson['features']:
-        feature['properties'] = {'code': feature['properties']['ctyua19cd']}
+        feature['properties'] = {'code': feature['properties']['CTYUA19CD']}
 
     for feature in countries['features']:
         feature['properties'] = {'code': feature['properties']['ctry18cd']}
 
-    for feature in scotland['features']:
-        feature['properties'] = {'code': feature['properties']['HBCode']}
-
     geojson['features'].extend(countries['features'])
-    geojson['features'].extend(scotland['features'])
 
     with open('data/boundaries.geojson', 'w') as f:
         json.dump(geojson, f)

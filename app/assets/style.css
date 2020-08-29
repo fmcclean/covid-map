@@ -3,23 +3,13 @@
     height: calc(var(--vh, 1vh) * 100 - 20px);
 }
 
-.tab-parent {
-    display: flex;
-    flex-direction: column;
-    height: 80%;
-}
-
-.tab-content {
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-}
 
 .map {
     width: 100%;
     flex: 1 1 auto;
+    height: 70%;
 }
 
 #graph {
-    height: 20%;
+    height: 30%;
 }

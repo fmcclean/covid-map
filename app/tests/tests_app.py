@@ -10,11 +10,8 @@ class TestApp(unittest.TestCase):
         from app import app
         self.app = app
 
-    def test_create_choropleth(self):
-        self.app.create_figure('choropleth')
-
-    def test_create_density(self):
-        self.app.create_figure('density')
+    def test_create_figure(self):
+        self.app.create_figure()
 
 
 if __name__ == '__main__':
