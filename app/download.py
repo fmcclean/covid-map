@@ -1,27 +1,15 @@
 import urllib.request
 import json
 import pandas as pd
-
+from io import BytesIO
 
 def boundaries():
     with urllib.request.urlopen(
-            "https://opendata.arcgis.com/datasets/4c7e4b5f1b4d49988967f151a8fe4477_0.geojson") as url:
+            "https://opendata.arcgis.com/datasets/b216b4c8a4e74f6fb692a1785255d777_0.geojson") as url:
         geojson = json.loads(url.read().decode())
 
-    with urllib.request.urlopen(
-            "https://opendata.arcgis.com/datasets/629c303e07ee4ad09a4dfd0bfea499ec_0.geojson") as url:
-        countries = json.loads(url.read().decode())
-
-    countries['features'] = [feature for feature in countries['features']
-                             if not feature['properties']['ctry18cd'][0][0] in ['E', 'W']]
-
     for feature in geojson['features']:
-        feature['properties'] = {'code': feature['properties']['CTYUA19CD']}
-
-    for feature in countries['features']:
-        feature['properties'] = {'code': feature['properties']['ctry18cd']}
-
-    geojson['features'].extend(countries['features'])
+        feature['properties'] = {'code': feature['properties']['ctyua19cd']}
 
     with open('data/boundaries.geojson', 'w') as f:
         json.dump(geojson, f)
@@ -44,25 +32,15 @@ def population():
         )
 
     with urllib.request.urlopen(req) as url:
-        df = pd.read_excel(url.read(),
+        stream = BytesIO(url.read())
+        df = pd.read_excel(stream,
                            sheet_name='MYE2-All',
-                           header=4).rename(
+                           header=4, engine='xlrd')
+        df = df.rename(
             columns={'Code': 'code',
                      'Name': 'name',
                      'All ages': 'population'})[['code', 'name', 'population']].iloc[:-3]
 
-    scotland = pd.read_csv('https://www.opendata.nhs.scot/dataset/7f010430-6ce1-4813-b25c-f7f335bdc4dc/'
-                           'resource/27a72cc8-d6d8-430c-8b4f-3109a9ceadb1/download/hb2014_pop_est_01072019.csv')
-    scotland = scotland[scotland.Year == 2018].rename(
-        columns={'HB2014': 'code', 'AllAges': 'population'})[['code', 'population']]
-
-    scotland_names = pd.read_csv('https://www.opendata.nhs.scot/dataset/9f942fdb-e59e-44f5-b534-d6e17229cc7b'
-                                 '/resource/944765d7-d0d9-46a0-b377-abb3de51d08e/download/geography_codes_an'
-                                 'd_labels_hscp2016_01042019.csv')
-    scotland_names = scotland_names.rename(columns={'HB2014': 'code', 'HB2014Name': 'name'})[['code', 'name']]
-    scotland_names['name'] = scotland_names.name.str[4:]
-    scotland = pd.merge(scotland, scotland_names.drop_duplicates())
-    df = df.append(scotland)
     df = df.groupby(['code', 'name'])['population'].sum().reset_index()
 
     df.to_csv('population.csv', index=False)
