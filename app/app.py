@@ -29,13 +29,13 @@ class App(dash.Dash):
     def update_data(self):
 
         df = []
-        for area_type in ['utla', 'nation']:
-            new_cases = "newCasesByPublishDate"
-            df.extend(Cov19API(filters=[f'areaType={area_type}'], structure={
-                "date": "date",
-                "areaCode": "areaCode",
-                new_cases: new_cases,
-            }, latest_by=new_cases).get_json()['data'])
+        area_type = 'utla'
+        new_cases = "newCasesByPublishDate"
+        df.extend(Cov19API(filters=[f'areaType={area_type}'], structure={
+            "date": "date",
+            "areaCode": "areaCode",
+            new_cases: new_cases,
+        }, latest_by=new_cases).get_json()['data'])
 
         df = pd.DataFrame(df).rename(columns={new_cases: 'new_cases', 'areaCode': 'code'})
         df['date'] = pd.to_datetime(df.date)
@@ -185,10 +185,7 @@ def display_click_data(difference_clickdata):
     data = difference_clickdata
     point = data['points'][0]
     area_name = point['location']
-    if area_name[0] in ['E', 'W']:
-        area_type = 'utla'
-    else:
-        area_type = 'nation'
+    area_type = 'utla'
     name = "newCasesBySpecimenDate"
 
     cases = pd.DataFrame(Cov19API(filters=[f'areaType={area_type};areaCode={area_name}'], structure={
