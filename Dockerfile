@@ -1,5 +1,5 @@
-FROM continuumio/miniconda
+FROM python:3.7
 COPY environment.yml .
-RUN conda env update -n base -f environment.yml
+RUN pip install -r requirements.txt
 COPY app /app/
 CMD gunicorn app:server --chdir /app
